@@ -355,27 +355,27 @@ class PlayerController extends Controller
         $callingPlayer = GamePlayer::find($playerId);
         if (!$callingPlayer || $callingPlayer->is_spectator) return response()->json(['error' => 'Spectators cannot use power-ups'], 403);
 
-        $game = Game::where('pin', $pin)->where('status', 'question')->firstOrFail();
+        $game       = Game::where('pin', $pin)->where('status', 'question')->firstOrFail();
         $questionId = $request->query('question_id');
 
-        // Find the current leader (highest score)
+        // Find the current leader (highest score, not the caller, not a spectator)
         $leader = $game->players()
             ->where('is_spectator', false)
             ->where('id', '!=', $playerId)
             ->orderByDesc('score')
             ->first();
 
-        if (!$leader) return response()->json(['answer_id' => null]);
+        if (!$leader) return response()->json(['correct' => null]);
 
-        // Find what answer the leader submitted for this question
+        // Return whether the leader answered correctly — not which answer they chose
         $leaderAnswer = GameAnswer::where('game_id', $game->id)
             ->where('game_player_id', $leader->id)
             ->where('question_id', $questionId)
             ->first();
 
-        if (!$leaderAnswer) return response()->json(['answer_id' => null]);
+        if (!$leaderAnswer) return response()->json(['correct' => null]);
 
-        return response()->json(['answer_id' => $leaderAnswer->answer_id]);
+        return response()->json(['correct' => (bool) $leaderAnswer->is_correct]);
     }
 
     public function kick(string $pin, $playerId)

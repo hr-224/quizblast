@@ -203,18 +203,9 @@
         .then(data => {
           const toast = document.createElement('div');
           toast.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#46178f;color:#fff;padding:.5rem 1.25rem;border-radius:4px;font-family:Montserrat,sans-serif;font-weight:800;font-size:.85rem;z-index:999';
-          if (data.answer_id) {
-            const blocks = [...document.querySelectorAll('#answer-grid > div')];
-            const idx    = currentAnswerIds.indexOf(data.answer_id);
-            if (idx >= 0 && blocks[idx]) {
-              blocks[idx].style.outline    = '4px dashed rgba(255,220,0,0.9)';
-              blocks[idx].style.boxShadow  = '0 0 16px rgba(255,220,0,0.5)';
-              setTimeout(() => { blocks[idx].style.outline=''; blocks[idx].style.boxShadow=''; }, 4000);
-            }
-            toast.textContent = '🕵 Leader intel acquired!';
-          } else {
-            toast.textContent = '🕵 No intel yet!';
-          }
+          if (data.correct === true)       toast.textContent = '🕵 Leader answered correctly!';
+          else if (data.correct === false) toast.textContent = '🕵 Leader answered incorrectly!';
+          else                             toast.textContent = '🕵 Leader hasn\'t answered yet!';
           document.body.appendChild(toast);
           setTimeout(() => toast.remove(), 3000);
         }).catch(() => {});
