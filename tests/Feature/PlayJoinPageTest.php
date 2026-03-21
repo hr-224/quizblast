@@ -50,7 +50,7 @@ class PlayJoinPageTest extends TestCase
         $response = $this->get(route('play.join'));
         // dark glass navbar override is present
         $response->assertSee('rgba(15,10,30', false);
-        // yellow underline is present
-        $response->assertSee('#ffd000', false);
+        // yellow border-bottom on .navbar is present
+        $response->assertSee('border-bottom: 2px solid #ffd000', false);
     }
 }

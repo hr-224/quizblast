@@ -219,8 +219,16 @@
   var W, H;
 
   function resize() {
+    var oldW = W || window.innerWidth;
+    var oldH = H || window.innerHeight;
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
+    if (orbs) {
+      orbs.forEach(function(o) {
+        o.cx = o.cx * (W / oldW);
+        o.cy = o.cy * (H / oldH);
+      });
+    }
   }
   resize();
   window.addEventListener('resize', resize);
@@ -344,8 +352,16 @@
     }
 
     t++;
-    requestAnimationFrame(draw);
+    rafId = requestAnimationFrame(draw);
   }
+  var rafId;
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      cancelAnimationFrame(rafId);
+    } else {
+      draw();
+    }
+  });
   draw();
 })();
 </script>
