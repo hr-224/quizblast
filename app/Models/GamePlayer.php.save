@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class GamePlayer extends Model
+{
+    
+
+    public function game()
+    {
+        return $this->belongsTo(Game::class);
+    }
+
+    public function answers()
+    {
+        return $this->hasMany(GameAnswer::class);
+    }
+    public static function removeStale(int $gameId): void
+    {
+        $stale = static::where('game_id', $gameId)
+            ->where('last_seen_at', '<', now()->subSeconds(15))
+            ->whereNotNull('last_seen_at')
+            ->get();
+
+        foreach ($stale as $player) {
+            $player->delete();
+        }
+    }
+}
