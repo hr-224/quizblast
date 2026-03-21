@@ -140,6 +140,19 @@
   let selectedAnswers   = new Set();
   let activePowerUp     = null;
   let usedPowerUps      = new Set({{ json_encode($player->power_ups ?? []) }});
+  let reviewSoundPlayed = false;
+
+  // Play correct/wrong sound once both conditions are met:
+  // (1) reviewing state is showing, (2) server answered with result.
+  // Called from both the reviewing handler and submitAnswer — whichever
+  // arrives last wins; the flag prevents a double-play.
+  function playAnswerResultSound() {
+    if (reviewSoundPlayed || lastAnswerCorrect === null) return;
+    reviewSoundPlayed = true;
+    if (lastAnswerCorrect === true)  QB.Audio.sfx.correct();
+    if (lastAnswerCorrect === false) QB.Audio.sfx.wrong();
+  }
+
   const SHAPES    = ['▲','◆','●','■'];
   const BG_COLORS = ['#e21b3c','#1368ce','#d89e00','#26890c'];
   const medals    = ['🥇','🥈','🥉'];
@@ -297,6 +310,7 @@
         updateScore(data.total_score);
         updateStreak(data.streak);
         if (data.streak >= 3) QB.Audio.sfx.streakBonus();
+        playAnswerResultSound();
       }
     } catch(e) {}
   }
@@ -355,6 +369,7 @@
         lastPointsEarned  = 0;
         lastStreakBonus   = 0;
         activePowerUp     = null;
+        reviewSoundPlayed = false;
         isMultiple        = q.multiple_correct;
 
         document.getElementById('q-progress').textContent    = `Q${data.current_question+1}/${data.total_questions}`;
@@ -416,8 +431,7 @@
         ? `+${lastPointsEarned} points${lastStreakBonus > 0 ? ` (incl. +${lastStreakBonus} streak bonus)` : ''}`
         : (lastAnswerCorrect === false ? 'No points this round' : '');
 
-      if (lastAnswerCorrect === true)  QB.Audio.sfx.correct();
-      if (lastAnswerCorrect === false) QB.Audio.sfx.wrong();
+      playAnswerResultSound();
 
       const streakEl = document.getElementById('review-streak');
       if (myStreak >= 3) { streakEl.textContent = `🔥 ${myStreak} answer streak!`; streakEl.style.display = ''; }

@@ -287,7 +287,7 @@
       overlay.style.display = 'flex';
       // Reset ring
       ring.style.transition = 'none';
-      ring.style.strokeDashoffset = String(CIRC);
+      ring.style.strokeDashoffset = '0';
       setTimeout(function(){ ring.style.transition = 'stroke-dashoffset 1s linear'; }, 30);
 
       var hostInterval = setInterval(function() {
