@@ -132,7 +132,7 @@ touch install/.installed
 
 WebSockets power the live player count, join ticker, and emoji reactions. Without them, the game works via HTTP polling.
 
-Start the Reverb server as a background service — see [websockets.md](websockets.md) for the full setup including nginx proxy and Apache mod_proxy_wstunnel configuration.
+Start the Reverb server as a background service — see [WebSockets](websockets.md) for the full setup including nginx proxy and Apache mod_proxy_wstunnel configuration.
 
 ---
 
