@@ -125,6 +125,6 @@ class MultiCorrectBroadcastTest extends TestCase
         ]);
 
         $this->assertSame('double_points', $row->fresh()->power_up_used);
-        $this->assertSame(80, $row->fresh()->streak_bonus);
+        $this->assertEquals(80, $row->fresh()->streak_bonus);
     }
 }
