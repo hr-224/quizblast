@@ -7,7 +7,7 @@
   <title>@yield('title', 'QuizBlast') — QuizBlast</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="shortcut icon" href="/favicon.svg" />
-  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/app.css?v={{ filemtime(public_path('css/app.css')) }}" />
   @stack('head')
 </head>
 <body>

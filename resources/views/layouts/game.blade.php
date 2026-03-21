@@ -7,7 +7,7 @@
   <title>@yield('title', 'QuizBlast') — QuizBlast</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="shortcut icon" href="/favicon.svg" />
-  <link rel="stylesheet" href="/css/app.css" />
+  <link rel="stylesheet" href="/css/app.css?v={{ filemtime(public_path('css/app.css')) }}" />
   <style>
     .game-wrap { min-height: 100vh; display: flex; flex-direction: column; }
     .game-topbar {
