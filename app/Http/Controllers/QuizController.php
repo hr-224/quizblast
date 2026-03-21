@@ -102,8 +102,8 @@ class QuizController extends Controller
             'answers'          => ['required','array','min:2','max:4'],
             'answers.*'        => ['required','string','max:200'],
             'correct_answers'  => ['required','array','min:1'],
-            'image_url'        => ['nullable','url','max:500'],
-            'video_url'        => ['nullable','url','max:500'],
+            'image_url'        => ['nullable','url:http,https','max:500'],
+            'video_url'        => ['nullable','url:http,https','max:500'],
             'multiple_correct' => ['nullable','boolean'],
         ]);
 
@@ -180,8 +180,8 @@ class QuizController extends Controller
             'answers'          => ['required','array','min:2','max:4'],
             'answers.*'        => ['required','string','max:200'],
             'correct_answers'  => ['required','array','min:1'],
-            'image_url'        => ['nullable','url','max:500'],
-            'video_url'        => ['nullable','url','max:500'],
+            'image_url'        => ['nullable','url:http,https','max:500'],
+            'video_url'        => ['nullable','url:http,https','max:500'],
             'multiple_correct' => ['nullable','boolean'],
         ]);
 
