@@ -220,7 +220,7 @@ class PlayerController extends Controller
                 $timeLimit    = $question->time_limit * 1000;
                 $elapsed      = min($request->response_time_ms, $timeLimit);
                 $speedFactor  = round(1 - (($elapsed / $timeLimit) * 0.5), 4);
-                $pointsEarned = -(int) round($question->points * $speedFactor); // negative!
+                $pointsEarned = -(int) round($question->points * $speedFactor * $multiplier); // negative!
             }
             $player->update(['streak' => 0]);
         }

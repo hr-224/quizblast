@@ -129,8 +129,38 @@ class MultiCorrectScoringTest extends TestCase
             'question_id' => $q->id, 'response_time_ms' => 0,
         ]);
 
-        // Partial should be roughly half of full (within rounding)
+        // Partial should be approximately half of full (within ±1 for integer rounding)
         $this->assertGreaterThan(0, $partial->json('points_earned'));
-        $this->assertLessThanOrEqual($full->json('points_earned'), $partial->json('points_earned'));
+        $this->assertEqualsWithDelta($full->json('points_earned') / 2, $partial->json('points_earned'), 1.0);
+    }
+
+    /** @test */
+    public function partial_verdict_resets_streak_to_zero(): void
+    {
+        ['question' => $q, 'a1' => $a1, 'player' => $player] = $this->makeGame();
+        $player->update(['streak' => 5]);
+
+        $response = $this->postJson('/play/888001/answer', [
+            'answer_ids'       => [$a1->id],
+            'question_id'      => $q->id,
+            'response_time_ms' => 5000,
+        ]);
+
+        $response->assertOk()->assertJson(['correct' => 'partial', 'streak' => 0]);
+    }
+
+    /** @test */
+    public function partial_verdict_earns_no_streak_bonus(): void
+    {
+        ['question' => $q, 'a1' => $a1, 'player' => $player] = $this->makeGame();
+        $player->update(['streak' => 5]);
+
+        $response = $this->postJson('/play/888001/answer', [
+            'answer_ids'       => [$a1->id],
+            'question_id'      => $q->id,
+            'response_time_ms' => 0,
+        ]);
+
+        $response->assertOk()->assertJson(['correct' => 'partial', 'streak_bonus' => 0]);
     }
 }
