@@ -144,6 +144,7 @@ class PlayerController extends Controller
 
         $player = GamePlayer::find($playerId);
         if (!$player) return response()->json(['error' => 'Player not found'], 403);
+        if ($player->is_spectator) return response()->json(['error' => 'Spectators cannot answer'], 403);
 
         $alreadyAnswered = GameAnswer::where('game_id', $game->id)
             ->where('game_player_id', $player->id)
@@ -157,6 +158,10 @@ class PlayerController extends Controller
 
         $answerIds  = $request->answer_ids;
         $correctIds = $question->answers->where('is_correct', true)->pluck('id')->toArray();
+
+        if (!$question->multiple_correct && count($answerIds) > 1) {
+            return response()->json(['error' => 'Only one answer allowed for this question'], 422);
+        }
 
         $isCorrect = $question->multiple_correct
             ? (empty(array_diff($correctIds, $answerIds)) && empty(array_diff($answerIds, $correctIds)))
@@ -181,7 +186,7 @@ class PlayerController extends Controller
         if ($isCorrect) {
             $timeLimit    = $question->time_limit * 1000;
             $elapsed      = min($request->response_time_ms, $timeLimit);
-            $speedFactor  = 1 - (($elapsed / $timeLimit) * 0.5);
+            $speedFactor  = round(1 - (($elapsed / $timeLimit) * 0.5), 4);
             $base         = (int) round($question->points * $speedFactor * $multiplier * $helpPenalty);
             $newStreak    = $player->streak + 1;
             if ($newStreak >= 3) {
@@ -194,7 +199,7 @@ class PlayerController extends Controller
             if ($powerUpUsed === 'double_points') {
                 $timeLimit    = $question->time_limit * 1000;
                 $elapsed      = min($request->response_time_ms, $timeLimit);
-                $speedFactor  = 1 - (($elapsed / $timeLimit) * 0.5);
+                $speedFactor  = round(1 - (($elapsed / $timeLimit) * 0.5), 4);
                 $pointsEarned = -(int) round($question->points * $speedFactor); // negative!
             }
             $player->update(['streak' => 0]);
@@ -346,6 +351,9 @@ class PlayerController extends Controller
     {
         $playerId = session('player_id_' . $pin);
         if (!$playerId) return response()->json(['error' => 'Not in game'], 403);
+
+        $callingPlayer = GamePlayer::find($playerId);
+        if (!$callingPlayer || $callingPlayer->is_spectator) return response()->json(['error' => 'Spectators cannot use power-ups'], 403);
 
         $game = Game::where('pin', $pin)->where('status', 'question')->firstOrFail();
         $questionId = $request->query('question_id');
