@@ -97,10 +97,12 @@
 
   {{-- Reviewing --}}
   <div id="state-reviewing" style="display:none;width:100%;max-width:600px;text-align:center;margin:2rem auto;padding:0 1rem">
-    <div style="font-size:4rem;margin-bottom:1rem" id="review-icon">—</div>
-    <h2 id="review-title" style="font-size:1.8rem;margin-bottom:.25rem">—</h2>
-    <p class="text-muted" id="review-points">—</p>
-    <p id="review-streak" style="display:none;color:var(--qb-yellow);font-weight:700;font-size:.9rem;margin-top:.3rem"></p>
+    <div id="review-verdict-card" class="review-verdict-card">
+      <div style="font-size:3.2rem;margin-bottom:8px" id="review-icon">—</div>
+      <h2 id="review-title" style="font-size:1.5rem;margin-bottom:4px">—</h2>
+      <p class="text-muted" id="review-points">—</p>
+      <p id="review-streak" style="display:none;font-weight:700;font-size:.88rem;margin-top:.3rem"></p>
+    </div>
     <div style="margin-top:1.5rem" id="review-answers"></div>
     <div class="card" style="margin-top:1.5rem;padding:1.2rem">
       <div style="font-size:.75rem;color:var(--qb-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.25rem">Your Score</div>
@@ -427,6 +429,12 @@
 
       document.getElementById('review-icon').textContent   = lastAnswerCorrect===null ? '⏭' : (lastAnswerCorrect ? '✅' : '❌');
       document.getElementById('review-title').textContent  = lastAnswerCorrect===null ? "Time's up!" : (lastAnswerCorrect ? 'Correct!' : 'Wrong!');
+      const vc = document.getElementById('review-verdict-card');
+      if (vc) {
+        vc.className = 'review-verdict-card ' +
+          (lastAnswerCorrect === true  ? 'review-verdict-correct' :
+           lastAnswerCorrect === false ? 'review-verdict-wrong'   : 'review-verdict-neutral');
+      }
       document.getElementById('review-points').textContent = lastPointsEarned > 0
         ? `+${lastPointsEarned} points${lastStreakBonus > 0 ? ` (incl. +${lastStreakBonus} streak bonus)` : ''}`
         : (lastAnswerCorrect === false ? 'No points this round' : '');
