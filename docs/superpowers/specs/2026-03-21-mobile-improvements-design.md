@@ -30,7 +30,11 @@ Note: the existing grid breakpoint in `app.css` uses `max-width:768px` — this 
    <button id="nav-toggle" class="hamburger-btn" aria-label="Menu" aria-expanded="false" aria-controls="nav-dropdown">☰</button>
    ```
 
-3. Add the dropdown **inside** `<nav class="navbar">`, immediately after `</div><!-- /.navbar-inner -->`. Keeping it inside `<nav>` preserves the sticky positioning:
+3. Add the dropdown **inside** `<nav class="navbar">`, between the `</div>` that closes `.navbar-inner` (currently line 42) and the `</nav>` tag (currently line 43). Keeping it inside `<nav>` preserves the sticky positioning. The insertion point looks like:
+   ```
+     </div>     ← this closes .navbar-inner — insert dropdown AFTER this line
+   </nav>       ← this closes .navbar — insert dropdown BEFORE this line
+   ```
    ```html
    <div id="nav-dropdown" class="nav-dropdown" hidden>
      <a href="{{ route('library') }}" class="nav-dropdown-link">Library</a>
@@ -142,15 +146,16 @@ Replace the `<div class="game-topbar">...</div>` block (lines 37–43) with:
 ```html
 <div class="game-topbar">
   <span class="game-topbar-brand">⚡ Quiz<span>Blast</span></span>
+  @hasSection('topbar-center')
   <div class="topbar-center">@yield('topbar-center')</div>
+  @endif
   <div class="topbar-right">@yield('topbar-right')</div>
 </div>
 ```
 
 Changes from current:
-- The anonymous center div `<div style="display:flex;gap:0.75rem;align-items:center">` becomes `<div class="topbar-center">` (inline style removed — managed by CSS).
+- The anonymous center div `<div style="display:flex;gap:0.75rem;align-items:center">` becomes `<div class="topbar-center">` wrapped in `@hasSection` / `@endif` (inline style removed — managed by CSS). Using `@hasSection` rather than always rendering the div means the second grid row is completely absent from the DOM on pages that don't yield `topbar-center`, avoiding any dead padding.
 - The anonymous right div `<div>` becomes `<div class="topbar-right">`.
-- The `@hasSection` conditional is **not used** — empty slots produce empty divs which take no space.
 
 Also update the inline `<style>` block in `game.blade.php`. The block currently contains three rules: `.game-topbar`, `.game-topbar-brand`, and `.game-topbar-brand span`. Only `.game-topbar` changes — leave `.game-topbar-brand` and `.game-topbar-brand span` **exactly as they are**.
 
@@ -180,6 +185,8 @@ Replace **only** the `.game-topbar` rule:
 ```
 
 The layout properties (`display`, `height`, `padding`, `align-items`, `justify-content`) move to `app.css` so they can be overridden by the mobile media query.
+
+**Important — cascade order:** The inline `<style>` block in `game.blade.php` is loaded **after** `<link rel="stylesheet" href="/css/app.css">`, so any property left in the inline `.game-topbar` rule will override `app.css` — including the mobile `@media` grid rule. After this edit the inline `.game-topbar` rule must contain **only** `background`, `border-bottom`, and `flex-shrink: 0`, and nothing else. Double-check that `display`, `align-items`, `justify-content`, `padding`, and `height` are all removed from the inline rule.
 
 ### CSS additions (`public/css/app.css`)
 
@@ -229,9 +236,6 @@ The layout properties (`display`, `height`, `padding`, `align-items`, `justify-c
     gap: 6px;
     padding: 0 0.75rem 8px;
   }
-  .topbar-center:empty {
-    display: none; /* collapse row 2 on pages with no center slot content */
-  }
   .topbar-right {
     grid-area: right;
     align-self: center;
@@ -242,7 +246,7 @@ The layout properties (`display`, `height`, `padding`, `align-items`, `justify-c
 
 **Desktop is preserved** because `.game-topbar { display: flex; ... }` applies at all widths, and the `@media (max-width: 600px)` override switches to `display: grid` only on mobile. The original three-element flex row is fully intact above 600px.
 
-**Empty center slot on mobile:** `.topbar-center:empty` hides the second grid row when no chips are yielded (e.g., on the lobby page), preventing the bottom padding from creating dead vertical space.
+**Empty center slot:** The `@hasSection('topbar-center')` conditional in the Blade template prevents the `.topbar-center` div from being rendered at all on pages that don't yield that section, so no dead padding ever appears.
 
 ---
 
