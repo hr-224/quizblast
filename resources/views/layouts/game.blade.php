@@ -34,7 +34,9 @@
     @hasSection('topbar-center')
     <div class="topbar-center">@yield('topbar-center')</div>
     @endif
+    @hasSection('topbar-right')
     <div class="topbar-right">@yield('topbar-right')</div>
+    @endif
   </div>
   <div style="flex:1;display:flex;flex-direction:column">
     @yield('content')

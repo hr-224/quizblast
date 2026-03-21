@@ -28,6 +28,20 @@ class MobileImprovementsTest extends TestCase
         $response->assertSee('dropdown.hidden', false);
     }
 
+    /** Game topbar CSS contains responsive grid rules */
+    public function test_game_topbar_css_has_responsive_rules(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+
+        // Desktop flex layout classes
+        $this->assertStringContainsString('.topbar-center', $css);
+        $this->assertStringContainsString('.topbar-right', $css);
+        // Mobile grid layout
+        $this->assertStringContainsString('grid-area: brand', $css);
+        $this->assertStringContainsString('grid-area: chips', $css);
+        $this->assertStringContainsString('grid-area: right', $css);
+    }
+
     /** Join page uses fluid heading and smaller PIN input */
     public function test_join_page_uses_clamp_heading_and_condensed_footer(): void
     {
