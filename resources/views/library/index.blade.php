@@ -9,15 +9,18 @@
         <h1 style="font-size:1.8rem;text-transform:uppercase;letter-spacing:-0.5px">Quiz Library</h1>
         <p style="color:rgba(255,255,255,0.6);font-size:0.88rem;margin-top:0.2rem">Browse and play public quizzes</p>
       </div>
-      <form method="GET" action="{{ route('library') }}" style="display:flex;gap:0.5rem">
-        <input type="text" name="search" class="form-control" value="{{ request('search') }}" placeholder="Search quizzes..." style="width:220px" />
-        <select name="category" class="form-control" style="width:150px">
-          <option value="">All Categories</option>
-          @foreach($categories as $cat)
-            <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
-          @endforeach
-        </select>
-        <button class="btn btn-white btn-sm">SEARCH</button>
+      <form method="GET" action="{{ route('library') }}" class="library-search-form">
+        <input type="text" name="search" class="form-control library-search-input"
+               value="{{ request('search') }}" placeholder="Search quizzes..." />
+        <div class="library-filter-row">
+          <select name="category" class="form-control library-search-select">
+            <option value="">All Categories</option>
+            @foreach($categories as $cat)
+              <option value="{{ $cat }}" {{ request('category') === $cat ? 'selected' : '' }}>{{ $cat }}</option>
+            @endforeach
+          </select>
+          <button class="btn btn-white btn-sm">SEARCH</button>
+        </div>
       </form>
     </div>
   </div>
