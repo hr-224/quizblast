@@ -17,18 +17,30 @@ class GameController extends Controller
             return redirect()->route('quizzes.edit', $quiz)->with('error', 'Add at least one question before hosting.');
         }
 
-        do {
-            $pin = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
-        } while (Game::where('pin', $pin)->where('status', '!=', 'finished')->exists());
+        $game = null;
+        for ($attempt = 0; $attempt < 10; $attempt++) {
+            $candidate = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+            // Skip PINs already in active use
+            if (Game::where('pin', $candidate)->where('status', '!=', 'finished')->exists()) continue;
+            try {
+                $game = Game::create([
+                    'quiz_id'        => $quiz->id,
+                    'user_id'        => auth()->id(),
+                    'pin'            => $candidate,
+                    'status'         => 'waiting',
+                    'team_mode'      => false,
+                    'spectator_mode' => true,
+                ]);
+                break;
+            } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+                // Concurrent request claimed this PIN — retry
+                continue;
+            }
+        }
 
-        $game = Game::create([
-            'quiz_id'        => $quiz->id,
-            'user_id'        => auth()->id(),
-            'pin'            => $pin,
-            'status'         => 'waiting',
-            'team_mode'      => false,
-            'spectator_mode' => true,
-        ]);
+        if (!$game) {
+            return redirect()->route('dashboard')->with('error', 'Could not generate a unique game PIN. Please try again.');
+        }
 
         return redirect()->route('game.lobby', $game);
     }
@@ -66,13 +78,11 @@ class GameController extends Controller
 
         if (!$question) return redirect()->route('game.final', $game);
 
-        $answerCounts = [];
-        foreach ($question->answers as $ans) {
-            $answerCounts[$ans->id] = $game->gameAnswers()
-                ->where('question_id', $question->id)
-                ->where('answer_id', $ans->id)
-                ->count();
-        }
+        $answerCounts = $game->gameAnswers()
+            ->where('question_id', $question->id)
+            ->selectRaw('answer_id, count(*) as total')
+            ->groupBy('answer_id')
+            ->pluck('total', 'answer_id');
 
         $totalAnswered = $game->gameAnswers()->where('question_id', $question->id)->count();
         $totalPlayers  = $game->players()->where('is_spectator', false)->count();

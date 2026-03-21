@@ -23,12 +23,15 @@ class DashboardController extends Controller
         $players = $game->players()->where('is_spectator', false)->orderByDesc('score')->get();
 
         // Build per-question answer breakdown
+        // Load all game answers for this game upfront — avoids N+1 per question
+        $allGameAnswers = GameAnswer::where('game_id', $game->id)
+            ->with(['answer', 'player'])
+            ->get()
+            ->groupBy('question_id');
+
         $breakdown = [];
         foreach ($game->quiz->questions as $question) {
-            $answers = GameAnswer::where('game_id', $game->id)
-                ->where('question_id', $question->id)
-                ->with(['answer', 'player'])
-                ->get();
+            $answers = $allGameAnswers->get($question->id, collect());
 
             $correctCount = 0;
             $playerBreakdown = [];
