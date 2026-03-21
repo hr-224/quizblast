@@ -75,10 +75,19 @@
     </div>
 
     {{-- Power-ups bar --}}
-    <div id="power-ups-bar" style="display:none;position:fixed;bottom:12px;left:0;right:0;z-index:25;display:flex;justify-content:center;gap:.5rem;padding:.5rem">
-      <button class="btn btn-outline btn-sm" id="pu-double" onclick="usePowerUp('double_points')" title="2x points if correct, LOSE points if wrong">⚡ 2x</button>
-      <button class="btn btn-outline btn-sm" id="pu-fifty"  onclick="usePowerUp('fifty_fifty')"   title="-50% points if correct">50/50</button>
-      <button class="btn btn-outline btn-sm" id="pu-spy"    onclick="usePowerUp('spy')"           title="-40% points if correct">🕵</button>
+    <div id="power-ups-bar" style="display:none;position:fixed;bottom:12px;left:0;right:0;z-index:25;justify-content:center;gap:8px;padding:6px 12px">
+      <button class="pu-card pu-double" id="pu-double" onclick="usePowerUp('double_points')" title="2× points if correct, LOSE points if wrong">
+        <div class="pu-icon">⚡</div>
+        <div class="pu-label">2× pts</div>
+      </button>
+      <button class="pu-card pu-fifty" id="pu-fifty" onclick="usePowerUp('fifty_fifty')" title="-50% points if correct">
+        <div class="pu-icon">✂️</div>
+        <div class="pu-label">50/50</div>
+      </button>
+      <button class="pu-card pu-spy" id="pu-spy" onclick="usePowerUp('spy')" title="-40% points if correct">
+        <div class="pu-icon">🕵️</div>
+        <div class="pu-label">Spy</div>
+      </button>
     </div>
   </div>
 
