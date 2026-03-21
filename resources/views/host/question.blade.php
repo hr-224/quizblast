@@ -134,6 +134,28 @@
   </div>
 
   @php $shapes = ['▲','◆','●','■']; $colors = ['a0','a1','a2','a3']; @endphp
+  @if($game->status === 'reviewing')
+  @php
+    $chartColors = ['#e21b3c','#1368ce','#d89e00','#26890c'];
+    $maxCount    = max(1, $answerCounts->max() ?? 1);
+  @endphp
+  <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:1rem 1.25rem .9rem;margin-bottom:1.25rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem">
+      <span style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--qb-muted)">Response breakdown</span>
+      <span style="font-size:.72rem;color:rgba(255,255,255,.45)">{{ $totalAnswered }} responses</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat({{ $question->answers->count() }},1fr);align-items:end;gap:12px;height:130px">
+      @foreach($question->answers as $idx => $ans)
+        @php $count = $answerCounts->get($ans->id, 0); @endphp
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:5px">
+          <span style="font-size:.9rem;font-weight:900;line-height:1;{{ $ans->is_correct ? 'color:var(--qb-yellow)' : 'color:#fff' }}">{{ $count }}</span>
+          <div style="width:100%;border-radius:4px 4px 0 0;height:{{ max(4, (int)($count / $maxCount * 120)) }}px;background:{{ $chartColors[$idx] }};{{ $ans->is_correct ? 'box-shadow:0 0 10px rgba(255,255,255,.18)' : '' }}"></div>
+          <span style="font-size:.78rem;line-height:1;margin-top:2px;{{ $ans->is_correct ? 'color:rgba(255,208,0,.85)' : 'color:rgba(255,255,255,.55)' }}">{{ $shapes[$idx] }}{{ $ans->is_correct ? ' ✓' : '' }}</span>
+        </div>
+      @endforeach
+    </div>
+  </div>
+  @endif
   <div class="grid-2" style="margin-bottom:1.5rem">
     @foreach($question->answers as $idx => $ans)
       <div class="answer-block {{ $colors[$idx] }} {{ $game->status === 'reviewing' ? 'answered' : '' }} {{ $game->status === 'reviewing' ? ($ans->is_correct ? 'correct' : 'incorrect') : '' }}">
