@@ -11,11 +11,6 @@
   <style>
     .game-wrap { min-height: 100vh; display: flex; flex-direction: column; }
     .game-topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1.25rem;
-      height: 58px;
       background: var(--qb-purple);
       border-bottom: 3px solid rgba(0,0,0,0.3);
       flex-shrink: 0;
@@ -36,10 +31,10 @@
 <div class="game-wrap">
   <div class="game-topbar">
     <span class="game-topbar-brand">⚡ Quiz<span>Blast</span></span>
-    <div style="display:flex;gap:0.75rem;align-items:center">
-      @yield('topbar-center')
-    </div>
-    <div>@yield('topbar-right')</div>
+    @hasSection('topbar-center')
+    <div class="topbar-center">@yield('topbar-center')</div>
+    @endif
+    <div class="topbar-right">@yield('topbar-right')</div>
   </div>
   <div style="flex:1;display:flex;flex-direction:column">
     @yield('content')
