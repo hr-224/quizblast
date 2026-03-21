@@ -87,6 +87,18 @@ document.querySelectorAll('.alert').forEach(function(el) {
     setTimeout(function() { el.remove(); }, 500);
   }, 3000);
 });
+
+(function() {
+  var toggle = document.getElementById('nav-toggle');
+  var dropdown = document.getElementById('nav-dropdown');
+  if (!toggle || !dropdown) return;
+  toggle.addEventListener('click', function() {
+    var isOpen = !dropdown.hidden;
+    dropdown.hidden = isOpen;
+    toggle.textContent = isOpen ? '☰' : '✕';
+    toggle.setAttribute('aria-expanded', String(!isOpen));
+  });
+})();
 </script>
 </body>
 </html>
