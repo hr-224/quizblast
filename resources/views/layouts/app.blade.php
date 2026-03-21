@@ -15,7 +15,7 @@
 <nav class="navbar">
   <div class="navbar-inner">
     <a href="{{ route('play.join') }}" class="navbar-brand">⚡ Quiz<span>Blast</span></a>
-    <div class="navbar-nav">
+    <div class="navbar-nav" id="nav-links">
       <a href="{{ route('library') }}" class="nav-link">Library</a>
       @auth
         <a href="{{ route('dashboard') }}" class="nav-link">Dashboard</a>
@@ -38,7 +38,32 @@
           <a href="{{ route('register') }}" class="btn btn-white btn-sm">Host Sign Up</a>
         @endif
       @endauth
-    </div>
+    </div>{{-- /.navbar-nav #nav-links --}}
+    <button id="nav-toggle" class="hamburger-btn" aria-label="Menu" aria-expanded="false" aria-controls="nav-dropdown">☰</button>
+  </div>{{-- /.navbar-inner --}}
+  <div id="nav-dropdown" class="nav-dropdown" hidden>
+    <a href="{{ route('library') }}" class="nav-dropdown-link">Library</a>
+    @auth
+      <a href="{{ route('dashboard') }}" class="nav-dropdown-link">Dashboard</a>
+      <a href="{{ route('quizzes.create') }}" class="nav-dropdown-link">New Quiz</a>
+      <form method="POST" action="{{ route('logout') }}">
+        @csrf
+        <button type="submit" class="nav-dropdown-link nav-dropdown-btn">Log out</button>
+      </form>
+    @else
+      <a href="{{ route('play.join') }}" class="nav-dropdown-link">Join Game</a>
+      @if(session('player_account_id'))
+        <a href="{{ route('player.stats') }}" class="nav-dropdown-link">My Stats</a>
+        <form method="POST" action="{{ route('player.logout') }}">
+          @csrf
+          <button type="submit" class="nav-dropdown-link nav-dropdown-btn">Log out</button>
+        </form>
+      @else
+        <a href="{{ route('player.login') }}" class="nav-dropdown-link">My Stats</a>
+        <a href="{{ route('login') }}" class="nav-dropdown-link">Host Login</a>
+        <a href="{{ route('register') }}" class="nav-dropdown-link" style="color:var(--qb-yellow)">Host Sign Up</a>
+      @endif
+    @endauth
   </div>
 </nav>
 
