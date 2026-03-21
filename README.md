@@ -27,29 +27,30 @@ Hosts create quizzes and launch live games with a 6-digit PIN. Players join inst
 | 👥 | **Spectator Mode** | Watch a game live without playing |
 | 🔒 | **Host Accounts** | Register, log in, manage your quiz library |
 | 📚 | **Public Library** | Browse and play public quizzes from other hosts |
-| 🗄 | **SQLite / MySQL** | Works out of the box — no database setup needed |
+| 🌐 | **Web Installer** | Browser-based setup wizard — no command line needed |
 
 ---
 
-## Quick Start (60 seconds)
+## Installation
 
-**Requirements:** PHP 8.2+, Composer
+**Requirements:** PHP 8.2+, Composer, MySQL or MariaDB
 
 ```bash
 git clone https://github.com/hr-224/quizblast.git
 cd quizblast
-bash setup.sh
+composer install
 php artisan serve
 ```
 
-Open **http://localhost:8000** and log in with the demo account:
+Then open **http://localhost:8000/install/** in your browser and follow the setup wizard.
 
-```
-Email:    demo@quizblast.app
-Password: password
-```
+The installer will:
+- Check PHP version and required extensions
+- Test and configure your database connection
+- Set up your site URL and admin account
+- Run all migrations automatically
 
-> Real-time WebSocket features require running the Reverb server. See [docs/websockets.md](docs/websockets.md).
+> See [docs/installation.md](docs/installation.md) for the full guide, including production deployment.
 
 ---
 
@@ -57,12 +58,14 @@ Password: password
 
 | Guide | Description |
 |---|---|
-| [Installation](docs/installation.md) | Full setup walkthrough, MySQL, WebSockets |
+| [Installation](docs/installation.md) | Web installer walkthrough, server requirements |
 | [Configuration](docs/configuration.md) | Every `.env` variable explained |
 | [Gameplay Guide](docs/gameplay.md) | Hosting a game, joining, scoring, power-ups |
 | [WebSockets](docs/websockets.md) | Running Laravel Reverb locally and in production |
 | [Self-Hosting](docs/self-hosting.md) | Deploy to your own server (nginx, SSL, systemd) |
 | [Architecture](docs/architecture.md) | Tech stack, database schema, real-time design |
+
+Also available as a [GitHub Wiki](https://github.com/hr-224/quizblast/wiki).
 
 ---
 
@@ -85,7 +88,7 @@ Password: password
 ## Tech Stack
 
 - **Backend:** Laravel 11, PHP 8.2+
-- **Database:** SQLite (default) or MySQL / MariaDB
+- **Database:** MySQL / MariaDB
 - **Real-time:** [Laravel Reverb](https://reverb.laravel.com/) (WebSockets) + HTTP polling fallback
 - **Frontend:** Blade templates, vanilla CSS, vanilla JS — no Node.js build step
 - **Testing:** PHPUnit 11

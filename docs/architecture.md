@@ -6,7 +6,7 @@
 |---|---|
 | Language | PHP 8.2+ |
 | Framework | Laravel 11 |
-| Database | SQLite (default) · MySQL · MariaDB |
+| Database | MySQL · MariaDB |
 | Real-time | Laravel Reverb (WebSockets) |
 | Frontend | Blade templates · Vanilla CSS · Vanilla JS |
 | Testing | PHPUnit 11 |

@@ -25,14 +25,12 @@ php artisan key:generate
 
 | Variable | Default | Description |
 |---|---|---|
-| `DB_CONNECTION` | `sqlite` | Driver: `sqlite` or `mysql` |
-| `DB_HOST` | `127.0.0.1` | MySQL host (sqlite ignores this) |
-| `DB_PORT` | `3306` | MySQL port |
-| `DB_DATABASE` | `database/database.sqlite` | Path for SQLite, or database name for MySQL |
-| `DB_USERNAME` | — | MySQL username |
-| `DB_PASSWORD` | — | MySQL password |
-
-For SQLite, just set `DB_CONNECTION=sqlite` — no other database variables are needed.
+| `DB_CONNECTION` | `mysql` | Always `mysql` — MySQL and MariaDB both use this driver |
+| `DB_HOST` | `127.0.0.1` | Database host |
+| `DB_PORT` | `3306` | Database port |
+| `DB_DATABASE` | `quizblast` | Database name |
+| `DB_USERNAME` | — | Database username |
+| `DB_PASSWORD` | — | Database password |
 
 ---
 

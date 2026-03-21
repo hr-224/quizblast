@@ -4,126 +4,100 @@
 
 | Requirement | Minimum | Notes |
 |---|---|---|
-| PHP | 8.2+ | Extensions: pdo, pdo_sqlite, mbstring, openssl, tokenizer, xml, ctype, json |
+| PHP | 8.2+ | Extensions: pdo, pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, json, curl |
 | Composer | 2.x | [getcomposer.org](https://getcomposer.org) |
-| Database | — | SQLite (bundled with PHP) **or** MySQL 8 / MariaDB 10.3+ |
+| Database | — | MySQL 8+ or MariaDB 10.3+ |
 | Web Server | — | PHP built-in (`php artisan serve`) for local dev; nginx for production |
 
 ---
 
-## Option 1 — Automated setup (recommended)
+## Web Installer (recommended)
+
+QuizBlast includes a browser-based setup wizard. No command line knowledge required beyond cloning the repo.
+
+### 1. Clone and install dependencies
 
 ```bash
 git clone https://github.com/hr-224/quizblast.git
 cd quizblast
-bash setup.sh
+composer install
 ```
 
-The script will:
-1. Verify PHP 8.2+
-2. Install/download Composer if missing
-3. Run `composer install`
-4. Copy `.env.example` → `.env`
-5. Generate `APP_KEY`
-6. Create `database/database.sqlite`
-7. Run all migrations
-8. Seed the demo quiz and demo account
-9. Fix `storage/` and `bootstrap/cache/` permissions
-
-Then start the development server:
+### 2. Start the development server
 
 ```bash
 php artisan serve
 ```
 
-Open **http://localhost:8000**.
+### 3. Open the installer
+
+Visit **http://localhost:8000/install/** in your browser.
+
+If you navigate to `http://localhost:8000` without a configured `.env`, you'll be redirected to the installer automatically.
+
+### Installer steps
+
+**Step 1 — Requirements check**
+The installer verifies your PHP version, required extensions, and that the `storage/` and `bootstrap/cache/` directories are writable. Fix any red items before proceeding.
+
+**Step 2 — Database**
+Enter your MySQL/MariaDB credentials. Use "Test Connection" to verify before continuing. The installer will create the database if it doesn't already exist.
+
+**Step 3 — Site settings**
+Set your site name, URL, and create your admin account. Optionally include sample quiz content (5 questions) to test the game immediately.
+
+**Step 4 — Install**
+Click "Install →" and watch the installer run migrations and set up your account. Takes 10–30 seconds.
+
+Once complete, click **Open QuizBlast** to go directly to the app.
 
 ---
 
-## Option 2 — Manual setup
+## Manual / CLI Setup
+
+For headless servers or automated deployments:
 
 ```bash
 git clone https://github.com/hr-224/quizblast.git
 cd quizblast
-
-# Install PHP dependencies
 composer install
 
-# Create environment file
+# Copy and edit config
 cp .env.example .env
+# → Set DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD, APP_URL
+
 php artisan key:generate
+php artisan migrate --force
 
-# Create SQLite database
-touch database/database.sqlite
-
-# Run migrations and seed demo data
-php artisan migrate --seed
+# Create admin account
+php artisan tinker
+> \App\Models\User::create(['name'=>'Admin','email'=>'you@example.com','password'=>bcrypt('yourpassword')])
 
 # Fix permissions
 chmod -R 775 storage bootstrap/cache
 
-# Start
-php artisan serve
+# Mark as installed so web installer shows "already installed"
+touch install/.installed
 ```
-
----
-
-## Using MySQL / MariaDB
-
-Edit `.env` before running migrations:
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=quizblast
-DB_USERNAME=root
-DB_PASSWORD=yourpassword
-```
-
-Create the database first:
-
-```sql
-CREATE DATABASE quizblast CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-Then run:
-
-```bash
-php artisan migrate --seed
-```
-
----
-
-## Demo Account
-
-After seeding, a demo host account is available:
-
-```
-Email:    demo@quizblast.app
-Password: password
-```
-
-It includes a sample quiz with questions to test the full game flow.
 
 ---
 
 ## Enable Real-Time WebSockets (optional for local dev)
 
-By default, the app works with HTTP polling — no extra setup needed.
-
-To enable WebSockets for live player count, join ticker, and instant updates, start the Reverb server in a second terminal:
+Start the Reverb WebSocket server in a second terminal:
 
 ```bash
 php artisan reverb:start
 ```
 
-See [websockets.md](websockets.md) for full configuration details.
+Without Reverb, the app uses HTTP polling — all game features work, but the lobby player count, join ticker, and emoji reactions require WebSockets.
+
+See [websockets.md](websockets.md) for production configuration.
 
 ---
 
 ## Next Steps
 
-- [Configuration reference](configuration.md) — all `.env` variables
+- [Configuration reference](configuration.md) — all `.env` variables explained
 - [WebSockets setup](websockets.md) — Reverb local and production
-- [Self-hosting guide](self-hosting.md) — nginx, SSL, systemd
+- [Self-hosting guide](self-hosting.md) — nginx, SSL, systemd on your own server

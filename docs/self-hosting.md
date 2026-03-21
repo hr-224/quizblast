@@ -9,9 +9,9 @@ Deploy QuizBlast to your own Linux server (Ubuntu / Debian).
 | Component | Minimum |
 |---|---|
 | OS | Ubuntu 22.04+ / Debian 12+ |
-| PHP | 8.2+ with extensions: pdo, pdo_sqlite or pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, json, curl |
+| PHP | 8.2+ with extensions: pdo, pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, json, curl |
 | Web server | nginx |
-| Database | SQLite (no setup) **or** MySQL 8+ / MariaDB 10.3+ |
+| Database | MySQL 8+ or MariaDB 10.3+ |
 | RAM | 512 MB+ |
 | Ports | 80, 443 (public); 7001 (internal, Reverb) |
 
@@ -23,8 +23,8 @@ Deploy QuizBlast to your own Linux server (Ubuntu / Debian).
 # PHP 8.3 + extensions
 sudo apt update
 sudo apt install -y php8.3-cli php8.3-fpm php8.3-mbstring php8.3-xml \
-    php8.3-sqlite3 php8.3-mysql php8.3-curl php8.3-tokenizer php8.3-ctype \
-    nginx git unzip
+    php8.3-mysql php8.3-curl php8.3-tokenizer php8.3-ctype \
+    mysql-server nginx git unzip
 
 # Composer
 curl -sS https://getcomposer.org/installer | php
@@ -56,8 +56,12 @@ APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://yourdomain.com
 
-# Database (SQLite or MySQL — see docs/configuration.md)
-DB_CONNECTION=sqlite
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=quizblast
+DB_USERNAME=quizblast
+DB_PASSWORD=yourpassword
 
 # Sessions
 SESSION_DRIVER=database
@@ -76,12 +80,17 @@ REVERB_SERVER_PORT=7001
 
 ---
 
-## 4. Run migrations
+## 4. Create MySQL database and user
 
 ```bash
-touch database/database.sqlite   # SQLite only
-php artisan migrate --force --seed
+mysql -u root -p -e "CREATE DATABASE quizblast CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root -p -e "CREATE USER 'quizblast'@'localhost' IDENTIFIED BY 'yourpassword';"
+mysql -u root -p -e "GRANT ALL PRIVILEGES ON quizblast.* TO 'quizblast'@'localhost';"
 ```
+
+> **Tip:** After nginx is configured and your domain points to the server, visit `https://yourdomain.com/install/` to run the web installer — it handles migrations, key generation, and admin account creation for you.
+>
+> For CLI-only setup: `php artisan key:generate && php artisan migrate --force`
 
 ---
 
@@ -234,12 +243,12 @@ sudo systemctl reload nginx
 
 ---
 
-## Shared Hosting (polling-only mode)
+## Without WebSockets (polling-only mode)
 
-If your host doesn't support WebSockets or long-running processes:
+If your server can't run long-lived processes (e.g. some shared hosts), set:
 
 ```env
 BROADCAST_DRIVER=log
 ```
 
-The game runs entirely via HTTP polling. All game features work except the lobby player count ticker and emoji reactions.
+The game runs entirely via HTTP polling. All core game features work — the only things that require WebSockets are the lobby player count ticker and emoji reactions.
