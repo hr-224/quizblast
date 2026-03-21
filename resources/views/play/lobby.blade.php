@@ -36,8 +36,8 @@
 <script>
 (function(){
   const pin    = '{{ $game->pin }}';
-  const appKey = 'e2fed83d6d942a2471a4c131241dffaa';
-  const wsHost = 'quizblast.ultmods.com';
+  const appKey = '{{ config('broadcasting.connections.reverb.key') }}';
+  const wsHost = '{{ config('broadcasting.connections.reverb.options.host') }}';
 
   const pusher = new Pusher(appKey, {
     wsHost: wsHost, wsPort: 443, wssPort: 443,

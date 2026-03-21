@@ -10,7 +10,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $quizzes     = $request->user()->quizzes()->withCount('questions')->latest()->get();
+        $quizzes     = $request->user()->quizzes()->withCount('questions')->latest()->paginate(20);
         $recentGames = $request->user()->games()->with('quiz')->latest()->take(10)->get();
         return view('dashboard.index', compact('quizzes', 'recentGames'));
     }

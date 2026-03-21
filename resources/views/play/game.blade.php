@@ -113,8 +113,8 @@
   const pin          = '{{ $game->pin }}';
   const playerId     = {{ $player->id }};
   const csrfToken    = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-  const appKey       = 'e2fed83d6d942a2471a4c131241dffaa';
-  const wsHost       = 'quizblast.ultmods.com';
+  const appKey       = '{{ config('broadcasting.connections.reverb.key') }}';
+  const wsHost       = '{{ config('broadcasting.connections.reverb.options.host') }}';
 
   let currentQuestionId = null;
   let answerSubmitted   = false;

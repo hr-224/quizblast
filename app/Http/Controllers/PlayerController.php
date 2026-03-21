@@ -300,7 +300,10 @@ class PlayerController extends Controller
         $playerId = session('player_id_' . $pin);
         if (!$playerId) return response()->json(['ok' => false]);
         $player = GamePlayer::find($playerId);
-        if ($player) $player->update(['last_seen_at' => now()]);
+        if ($player) {
+            $player->update(['last_seen_at' => now()]);
+            GamePlayer::removeStale($player->game_id);
+        }
         return response()->json(['ok' => true]);
     }
 

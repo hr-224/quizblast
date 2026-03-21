@@ -51,6 +51,11 @@
         @endforeach
       </div>
     @endif
+    @if($quizzes->hasPages())
+      <div class="mt-3" style="display:flex;justify-content:center">
+        {{ $quizzes->links() }}
+      </div>
+    @endif
     @if($recentGames->isNotEmpty())
       <div class="mt-4">
         <h2 style="font-size:0.85rem;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--qb-muted);margin-bottom:0.75rem">Recent Games</h2>
