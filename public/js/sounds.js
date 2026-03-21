@@ -85,48 +85,82 @@ QB.Audio = (function(){
     if(!mus||!ctx)return;
     resume(); stopBg();
 
-    // 120 BPM, C minor — original composition, copyright-free
-    var B=0.5; // beat = 0.5s at 120 BPM
+    var B=0.5; // 120 BPM — beat duration in seconds
 
-    // Melody: [freq_hz, beat_offset, duration_beats]
-    var seq=[
-      [311,.0,.4],[349,.5,.4],[392,1,.4],[311,1.5,.4],
-      [554,2,.5],[587,2.6,.3],[554,3,.4],[466,3.5,.4],
-      [392,4,.4],[349,4.5,.4],[311,5,.4],[349,5.5,.4],
-      [392,6,.8],[311,7,.8],
-      [349,8,.4],[392,8.5,.4],[466,9,.4],[392,9.5,.4],
-      [554,10,.5],[587,10.6,.3],[622,11,.5],[587,11.6,.3],
-      [554,12,.4],[466,12.5,.4],[392,13,.4],[349,13.5,.4],
-      [311,14,1.0],[311,15,.8],
+    // Smooth triangle-wave tone with gentle ADSR
+    function tone(f,t,d,v){
+      if(!ctx)return;
+      var o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='triangle'; o.frequency.value=f;
+      o.connect(g); g.connect(mg);
+      var att=0.012, rel=Math.min(0.07,d*0.25);
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(v,t+att);
+      g.gain.setValueAtTime(v,t+d-rel);
+      g.gain.linearRampToValueAtTime(0,t+d);
+      o.start(t); o.stop(t+d+0.01); bh.push(o);
+    }
+
+    // Soft sine bass
+    function bs(f,t,d){
+      if(!ctx)return;
+      var o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sine'; o.frequency.value=f;
+      o.connect(g); g.connect(mg);
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(0.26,t+0.02);
+      g.gain.setValueAtTime(0.26,t+d-0.05);
+      g.gain.linearRampToValueAtTime(0,t+d);
+      o.start(t); o.stop(t+d+0.01); bh.push(o);
+    }
+
+    // 4-bar loop (16 beats = 8s), C major, I–V–vi–IV
+    // Melody: [freq, beat, dur_beats, vol]
+    var MEL=[
+      // Bar 1 – C major (I): rising C-E-G-C
+      [523.25,0,.42,.38],[659.25,1,.42,.38],[783.99,2,.42,.38],[1046.5,3,.85,.40],
+      // Bar 2 – G major (V): A-G-E-D
+      [880.00,4,.42,.36],[783.99,5,.42,.36],[659.25,6,.42,.36],[587.33,7,.85,.36],
+      // Bar 3 – A minor (vi): E-F-G-A
+      [659.25,8,.42,.36],[698.46,8.5,.38,.34],[783.99,9,.42,.38],[880.00,10,.85,.40],
+      // Bar 3 tail – F major (IV): A-G
+      [880.00,11,.35,.34],[783.99,11.5,.35,.34],
+      // Bar 4 – C major (I): resolution E-D-C, then E-C
+      [659.25,12,.42,.38],[587.33,12.5,.35,.34],[523.25,13,.80,.38],
+      [659.25,14,.42,.36],[523.25,15,.85,.40],
     ];
 
-    // Bass note per bar (2 beats each)
-    var bass=[130,130,196,130, 175,175,196,130];
+    // Chord pads (very soft, just fill the harmony)
+    // [freq array, beat_start, dur_beats]
+    var PADS=[
+      {t:0,  d:4, notes:[261.63,329.63,392.00]}, // C major
+      {t:4,  d:4, notes:[196.00,246.94,293.66]}, // G major
+      {t:8,  d:2, notes:[220.00,261.63,329.63]}, // A minor
+      {t:10, d:2, notes:[174.61,220.00,261.63]}, // F major
+      {t:12, d:4, notes:[261.63,329.63,392.00]}, // C major
+    ];
+
+    // Bass: root on beats 1 & 3 of each bar
+    var BASS=[
+      [130.81,0,1.8],[130.81,2,1.8],  // C bar 1
+      [98.00, 4,1.8],[98.00, 6,1.8],  // G bar 2
+      [110.00,8,1.8],[174.61,10,1.8], // Am, F bar 3
+      [130.81,12,1.8],[130.81,14,1.8],// C bar 4
+    ];
 
     function loop(startT){
       if(!mus)return;
       var loopDur=B*16;
 
-      // Melody
-      seq.forEach(function(note){
-        n(note[0],'sine',startT+note[1]*B,note[2]*B,0.35);
-      });
+      MEL.forEach(function(m){ tone(m[0],startT+m[1]*B,m[2]*B,m[3]); });
+      PADS.forEach(function(p){ p.notes.forEach(function(f){ tone(f,startT+p.t*B,p.d*B-0.05,0.07); }); });
+      BASS.forEach(function(b){ bs(b[0],startT+b[1]*B,b[2]*B); });
 
-      // Bass
-      for(var b=0;b<8;b++){
-        var bt=startT+b*2*B;
-        n(bass[b],'sine',bt,B*1.5,0.45);
-        n(bass[b],'sine',bt+B,B*1.5,0.35);
-      }
-
-      // Drums
-      for(var b2=0;b2<8;b2++){
-        var bt2=startT+b2*2*B;
-        kick(bt2); kick(bt2+B*1.5);
-        snare(bt2+B*0.5); snare(bt2+B*1.5);
-        for(var q=0;q<4;q++){
-          hh(bt2+q*B*0.5, q%2===0?0.12:0.06);
-        }
+      for(var bar=0;bar<4;bar++){
+        var bt=startT+bar*4*B;
+        kick(bt); kick(bt+B*2); kick(bt+B*2.5);
+        snare(bt+B); snare(bt+B*3);
+        for(var h=0;h<8;h++){ hh(bt+h*B*0.5, h%2===0?0.09:0.05); }
       }
 
       var tid=setTimeout(function(){ if(mus) loop(startT+loopDur); },(loopDur-0.3)*1000);

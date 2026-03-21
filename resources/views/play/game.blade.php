@@ -27,12 +27,6 @@
   </div>
 </div>
 
-{{-- Leaderboard overlay --}}
-<div id="lb-overlay" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(14,11,30,.92);backdrop-filter:blur(6px);flex-direction:column;align-items:center;justify-content:center;padding:2rem">
-  <h2 style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:1.5rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:1.5rem;color:var(--qb-yellow)">🏆 Leaderboard</h2>
-  <ul class="leaderboard-list" id="overlay-lb" style="width:100%;max-width:500px"></ul>
-  <p class="text-muted mt-3" style="font-size:0.82rem">Next question coming up…</p>
-</div>
 
 {{-- Bottom timer bar --}}
 <div id="player-timer-wrap" style="display:none;position:fixed;bottom:0;left:0;right:0;height:10px;background:rgba(255,255,255,.1);z-index:200">
@@ -121,7 +115,7 @@
 @endsection
 
 @push('scripts')
-<script src="/js/sounds.js?v=8"></script>
+<script src="/js/sounds.js?v=9"></script>
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
 (function(){
@@ -146,8 +140,6 @@
   let selectedAnswers   = new Set();
   let activePowerUp     = null;
   let usedPowerUps      = new Set({{ json_encode($player->power_ups ?? []) }});
-  let lbOverlayTimer    = null;
-
   const SHAPES    = ['▲','◆','●','■'];
   const BG_COLORS = ['#e21b3c','#1368ce','#d89e00','#26890c'];
   const medals    = ['🥇','🥈','🥉'];
@@ -162,26 +154,6 @@
       const el = document.getElementById('state-' + s);
       if (el) el.style.display = s === name ? '' : 'none';
     });
-  }
-
-  function showLbOverlay(leaderboard) {
-    const ol   = document.getElementById('lb-overlay');
-    const list = document.getElementById('overlay-lb');
-    list.innerHTML = (leaderboard || []).map((p, i) => {
-      const rankClass = i === 0 ? 'lb-rank-1' : i === 1 ? 'lb-rank-2' : i === 2 ? 'lb-rank-3' : '';
-      const isMe      = p.id == playerId;
-      const youBadge  = isMe ? '<span class="lb-you-badge">you</span>' : '';
-      const streak    = p.best_streak >= 3 ? ` <span class="lb-streak-badge">🔥${p.best_streak}</span>` : '';
-      return `<li class="leaderboard-item ${rankClass}${isMe ? ' lb-me' : ''}">
-        <div class="leaderboard-rank">${medals[i] || i+1}</div>
-        <div class="leaderboard-name">${p.nickname}${streak}${youBadge}</div>
-        <div class="leaderboard-score">${Number(p.score).toLocaleString()}</div>
-      </li>`;
-    }).join('');
-    ol.style.display = 'flex';
-    QB.Audio.sfx.leaderboard();
-    if (lbOverlayTimer) clearTimeout(lbOverlayTimer);
-    lbOverlayTimer = setTimeout(() => { ol.style.display = 'none'; }, 4000);
   }
 
   function updateScore(score) {
@@ -375,8 +347,6 @@
 
     if (data.status === 'question' && data.question) {
       const q = data.question;
-      document.getElementById('lb-overlay').style.display = 'none';
-      if (lbOverlayTimer) { clearTimeout(lbOverlayTimer); lbOverlayTimer = null; }
 
       if (currentQuestionId !== q.id) {
         currentQuestionId = q.id;
@@ -465,10 +435,6 @@
       });
       reviewDiv.appendChild(grid);
       showState('reviewing');
-
-      setTimeout(() => {
-        if (data.leaderboard && data.leaderboard.length > 0) showLbOverlay(data.leaderboard);
-      }, 2500);
     }
   }
 

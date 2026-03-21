@@ -95,7 +95,7 @@ html::-webkit-scrollbar { display: none; }
 @endsection
 
 @push('scripts')
-<script src="/js/sounds.js?v=8"></script>
+<script src="/js/sounds.js?v=9"></script>
 <script src="/js/confetti.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
