@@ -10,24 +10,28 @@
 @endsection
 
 @section('content')
-<div style="min-height:calc(100vh - 64px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem">
+<div class="lobby-wrap">
+  <div style="font-size:3.5rem">🎮</div>
+  <h1 class="lobby-heading">You're in!</h1>
+  <p class="lobby-sub">Waiting for the host to start…</p>
 
-  <div style="font-size:4rem;margin-bottom:1rem;animation:trophy-bounce 0.6s cubic-bezier(0.34,1.56,0.64,1)">🎮</div>
-  <h1 style="font-size:2rem;margin-bottom:0.4rem">You're in!</h1>
-  <p class="text-muted mb-1">Waiting for the host to start the game…</p>
+  <div id="player-count-pill" class="lobby-count-pill">
+    <span id="lobby-count">…</span>
+    <span class="lobby-count-label">players joined</span>
+  </div>
+  <div id="join-ticker" class="lobby-join-ticker" style="visibility:hidden">​</div>
 
-  <div style="margin:1.5rem 0;padding:1rem 2.5rem;background:rgba(108,62,232,.18);border:2px solid rgba(108,62,232,.4);border-radius:var(--radius)">
-    <p style="font-size:0.75rem;color:var(--qb-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:0.2rem">Playing as</p>
-    <p style="font-family:'Nunito',sans-serif;font-weight:900;font-size:2rem;color:var(--qb-cyan)">{{ $player->nickname }}</p>
+  <div class="lobby-nick-badge">
+    <p class="lobby-nick-label">Playing as</p>
+    <p class="lobby-nick-name">{{ $player->nickname }}</p>
   </div>
 
-  <div style="display:flex;align-items:center;gap:0.75rem;margin-top:1rem">
-    <div class="pulse-dot" id="ws-dot" style="background:var(--qb-muted)"></div>
+  <div class="lobby-dots">
+    <div class="pulse-dot" id="ws-dot"  style="background:var(--qb-muted)"></div>
     <div class="pulse-dot" id="ws-dot2" style="animation-delay:.2s;background:var(--qb-muted)"></div>
     <div class="pulse-dot" id="ws-dot3" style="animation-delay:.4s;background:var(--qb-muted)"></div>
-    <span class="text-muted" style="font-size:0.9rem" id="status-text">Connecting…</span>
+    <span class="text-muted lobby-status-text" id="status-text">Connecting…</span>
   </div>
-
 </div>
 @endsection
 
@@ -92,6 +96,44 @@
   setInterval(() => {
     fetch('/play/' + pin + '/heartbeat', { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken } });
   }, 5000);
+
+  // Initial player count
+  fetch('/api/game/' + pin + '/players')
+    .then(r => r.json())
+    .then(data => {
+      const el = document.getElementById('lobby-count');
+      if (el && data.count !== undefined) el.textContent = data.count;
+    }).catch(() => {});
+
+  // Live player join/leave
+  channel.bind('player-joined', function(data) {
+    const countEl = document.getElementById('lobby-count');
+    if (countEl && data.count !== undefined) countEl.textContent = data.count;
+    showJoinTicker(data.nickname);
+  });
+
+  channel.bind('player-left', function(data) {
+    const countEl = document.getElementById('lobby-count');
+    if (countEl && data.count !== undefined) countEl.textContent = data.count;
+    // Clear the join ticker when a player leaves
+    if (tickerTimer) clearTimeout(tickerTimer);
+    const ticker = document.getElementById('join-ticker');
+    if (ticker) { ticker.style.opacity = '0'; ticker.style.visibility = 'hidden'; }
+  });
+
+  var tickerTimer = null;
+  function showJoinTicker(nickname) {
+    const el = document.getElementById('join-ticker');
+    if (!el) return;
+    if (tickerTimer) clearTimeout(tickerTimer);
+    el.textContent = '\u2756 ' + nickname + ' just joined';
+    el.style.visibility = 'visible';
+    el.style.opacity = '1';
+    tickerTimer = setTimeout(function() {
+      el.style.opacity = '0';
+      setTimeout(function() { el.style.visibility = 'hidden'; }, 400);
+    }, 3000);
+  }
 })();
 </script>
 @endpush
