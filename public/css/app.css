@@ -246,3 +246,54 @@ textarea.form-control{resize:vertical;min-height:80px}
   .library-filter-row    { flex: none; }
   .library-filter-row .library-search-select { flex: 1; width: auto; }
 }
+
+/* ── Lobby ── */
+.lobby-wrap { min-height: calc(100vh - 64px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; gap: 0; }
+.lobby-heading { font-size: 1.8rem; margin: 0.75rem 0 0.3rem; }
+.lobby-sub { font-size: .82rem; color: var(--qb-muted); margin: 0 0 1rem; }
+.lobby-count-pill { display: inline-flex; align-items: center; gap: 8px; background: rgba(38,137,12,.18); border: 1px solid rgba(38,137,12,.4); border-radius: 20px; padding: 5px 16px; font-size: .75rem; font-weight: 700; }
+.lobby-count-pill #lobby-count { font-size: 1.15rem; font-weight: 900; color: var(--qb-green); }
+.lobby-count-pill .lobby-count-label { color: rgba(255,255,255,.55); font-size: .7rem; }
+.lobby-join-ticker { height: 18px; font-size: .7rem; color: rgba(255,255,255,.35); font-weight: 700; margin: 6px 0 0; transition: opacity .4s ease; }
+.lobby-nick-badge { margin: 1.2rem 0 0; padding: 1rem 2.5rem; background: rgba(108,62,232,.18); border: 2px solid rgba(108,62,232,.4); border-radius: var(--radius); }
+.lobby-nick-label { font-size: .72rem; color: var(--qb-muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: .2rem; }
+.lobby-nick-name  { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 2rem; color: var(--qb-cyan); margin: 0; }
+.lobby-dots { display: flex; align-items: center; gap: .75rem; margin-top: 1.2rem; }
+.lobby-status-text { font-size: .88rem; }
+
+/* ── Power-up cards ── */
+.pu-card { background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.15); border-radius: 10px; color: #fff; padding: 7px 16px; text-align: center; cursor: pointer; font-family: inherit; min-width: 68px; transition: opacity .2s, transform .1s; }
+.pu-card:active { transform: scale(.95); }
+.pu-card:disabled { opacity: .3; cursor: default; }
+.pu-double { background: rgba(255,208,0,.1);   border-color: rgba(255,208,0,.35); }
+.pu-fifty  { background: rgba(0,210,255,.1);   border-color: rgba(0,210,255,.35); }
+.pu-spy    { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.12); }
+.pu-icon   { font-size: 1.1rem; line-height: 1; margin-bottom: 2px; pointer-events: none; }
+.pu-label  { font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .3px; pointer-events: none; }
+.pu-double .pu-label { color: #ffd000; }
+.pu-fifty  .pu-label { color: #00d2ff; }
+.pu-spy    .pu-label { color: rgba(255,255,255,.55); }
+
+/* ── Answered/locked-in screen ── */
+.answered-block-preview { width: 90px; height: 90px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 3rem; outline: 4px solid rgba(255,255,255,.55); outline-offset: -4px; box-shadow: 0 0 28px rgba(0,0,0,.4); }
+.answered-score-badge { background: rgba(108,62,232,.2); border: 2px solid rgba(108,62,232,.4); border-radius: var(--radius); padding: .75rem 2rem; }
+.answered-score-label { font-size: .62rem; color: var(--qb-muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: .2rem; }
+.answered-score-val   { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 1.6rem; color: var(--qb-yellow); }
+
+/* ── Review verdict card ── */
+.review-verdict-card { width: 100%; border-radius: 12px; padding: 18px 16px 14px; margin-bottom: 1rem; display: flex; flex-direction: column; align-items: center; }
+.review-verdict-correct { background: rgba(38,137,12,.15);  border: 2px solid rgba(38,137,12,.4); }
+.review-verdict-wrong   { background: rgba(226,27,60,.12);   border: 2px solid rgba(226,27,60,.35); }
+.review-verdict-neutral { background: rgba(255,255,255,.05); border: 2px solid rgba(255,255,255,.1); }
+
+/* ── Review verdict card title colours ── */
+#review-title.correct-title { color: var(--qb-green); }
+#review-title.wrong-title   { color: #ff4d6a; }
+
+/* ── Leaderboard row highlights ── */
+.lb-rank-1 { background: rgba(255,208,0,.12)    !important; border-color: rgba(255,208,0,.3)    !important; }
+.lb-rank-2 { background: rgba(192,192,220,.08)  !important; border-color: rgba(192,192,220,.2)  !important; }
+.lb-rank-3 { background: rgba(205,127,50,.08)   !important; border-color: rgba(205,127,50,.2)   !important; }
+.lb-me     { background: rgba(108,62,232,.18)   !important; border-color: rgba(108,62,232,.4)   !important; }
+.lb-you-badge { font-size: .6rem; font-weight: 700; background: var(--qb-purple); color: #fff; border-radius: 10px; padding: 1px 6px; letter-spacing: .3px; text-transform: uppercase; margin-left: 4px; }
+.lb-streak-badge { font-size: .72rem; color: #ff8c00; margin-left: 3px; }
