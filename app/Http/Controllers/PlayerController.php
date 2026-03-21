@@ -156,22 +156,38 @@ class PlayerController extends Controller
         $question = $game->quiz->questions()->with('answers')->find($request->question_id);
         if (!$question) return response()->json(['error' => 'Question not found'], 404);
 
-        $answerIds  = $request->answer_ids;
-        $correctIds = $question->answers->where('is_correct', true)->pluck('id')->toArray();
+        $answerIds    = $request->answer_ids;
+        $submittedIds = array_map('intval', $answerIds);
+        $correctIds   = $question->answers->where('is_correct', true)->pluck('id')->map(fn($id) => (int)$id)->toArray();
 
         if (!$question->multiple_correct && count($answerIds) > 1) {
             return response()->json(['error' => 'Only one answer allowed for this question'], 422);
         }
 
-        $isCorrect = $question->multiple_correct
-            ? (empty(array_diff($correctIds, $answerIds)) && empty(array_diff($answerIds, $correctIds)))
-            : ($question->answers->find($answerIds[0])?->is_correct ?? false);
+        // Determine verdict: true | 'partial' | false
+        if ($question->multiple_correct) {
+            $correctSelected = count(array_intersect($submittedIds, $correctIds));
+            $wrongSelected   = count(array_diff($submittedIds, $correctIds));
+            $totalCorrect    = count($correctIds);
+            $partialFraction = $totalCorrect > 0 ? max(0, $correctSelected - $wrongSelected) / $totalCorrect : 0.0;
+
+            if ($partialFraction >= 1.0) {
+                $verdict = true;
+            } elseif ($partialFraction > 0) {
+                $verdict = 'partial';
+            } else {
+                $verdict = false;
+            }
+        } else {
+            $verdict         = (bool) ($question->answers->find($submittedIds[0])?->is_correct ?? false);
+            $partialFraction = $verdict ? 1.0 : 0.0;
+        }
 
         $pointsEarned = 0;
         $streakBonus  = 0;
         $powerUpUsed  = null;
         $multiplier   = 1;
-        $helpPenalty  = 1.0; // multiplier reduction for using help power-ups
+        $helpPenalty  = 1.0;
 
         if ($request->power_up && $player->hasPowerUp($request->power_up)) {
             $powerUpUsed = $request->power_up;
@@ -183,17 +199,21 @@ class PlayerController extends Controller
             $player->update(['power_ups' => $used]);
         }
 
-        if ($isCorrect) {
-            $timeLimit    = $question->time_limit * 1000;
-            $elapsed      = min($request->response_time_ms, $timeLimit);
-            $speedFactor  = round(1 - (($elapsed / $timeLimit) * 0.5), 4);
-            $base         = (int) round($question->points * $speedFactor * $multiplier * $helpPenalty);
-            $newStreak    = $player->streak + 1;
-            if ($newStreak >= 3) {
+        if ($partialFraction > 0) {
+            $timeLimit   = $question->time_limit * 1000;
+            $elapsed     = min($request->response_time_ms, $timeLimit);
+            $speedFactor = round(1 - (($elapsed / $timeLimit) * 0.5), 4);
+            $base        = (int) round($question->points * $partialFraction * $speedFactor * $multiplier * $helpPenalty);
+            $newStreak   = $verdict === true ? $player->streak + 1 : 0;
+            if ($verdict === true && $newStreak >= 3) {
                 $streakBonus = (int) round($base * min(($newStreak - 2) * 0.1, 0.5));
             }
             $pointsEarned = $base + $streakBonus;
-            $player->update(['streak' => $newStreak, 'best_streak' => max($player->best_streak, $newStreak)]);
+            if ($verdict === true) {
+                $player->update(['streak' => $newStreak, 'best_streak' => max($player->best_streak, $newStreak)]);
+            } else {
+                $player->update(['streak' => 0]);
+            }
         } else {
             // Double points wrong = lose points. Other power-ups = no penalty on wrong answer.
             if ($powerUpUsed === 'double_points') {
@@ -222,7 +242,7 @@ class PlayerController extends Controller
         broadcast(new AnswerCountUpdated($game, $question->id));
 
         return response()->json([
-            'correct'       => $isCorrect,
+            'correct'       => $verdict,
             'points_earned' => $pointsEarned,
             'streak_bonus'  => $streakBonus,
             'streak'        => $player->fresh()->streak,
