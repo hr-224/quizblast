@@ -144,27 +144,6 @@
     @endforeach
   </div>
 
-  <div class="grid-2" style="gap:1.5rem;align-items:start">
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-weight:700;font-size:.85rem;text-transform:uppercase">Responses</span>
-        <span class="stat-chip"><span class="val" id="total-answered-display">{{ $totalAnswered }}</span>/{{ $totalPlayers }} answered</span>
-      </div>
-    </div>
-
-    <div class="card">
-      <div style="font-weight:700;font-size:.85rem;text-transform:uppercase;margin-bottom:.75rem">Leaderboard</div>
-      <ul class="leaderboard-list" id="live-lb">
-        @foreach($game->players->where('is_spectator', false)->sortByDesc('score')->take(5) as $idx => $p)
-          <li class="leaderboard-item">
-            <div class="leaderboard-rank">{{ $idx+1 }}</div>
-            <div class="leaderboard-name">{{ $p->nickname }}@if($p->streak >= 3) 🔥@endif</div>
-            <div class="leaderboard-score">{{ number_format($p->score) }}</div>
-          </li>
-        @endforeach
-      </ul>
-    </div>
-  </div>
 </div>
 @endsection
 
@@ -220,7 +199,6 @@
   channel.bind('answer-count-updated',function(data){
     if(data.question_id!== {{ $question->id }}) return;
     document.getElementById('answered-count').textContent=data.total_answered;
-    document.getElementById('total-answered-display').textContent=data.total_answered;
     // Auto-reveal when all players answered
     if(data.total_answered >= totalPlayers && totalPlayers > 0 && !revealed){
       revealed = true;
