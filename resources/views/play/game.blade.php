@@ -60,7 +60,7 @@
     </div>
 
     {{-- Full-screen Kahoot-style answer grid --}}
-    <div id="answer-grid" style="display:none;position:fixed;left:0;right:0;top:61px;bottom:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px;padding:6px;background:var(--qb-darker);z-index:10;touch-action:none"></div>
+    <div id="answer-grid" style="display:none;position:fixed;left:0;right:0;top:var(--topbar-h);bottom:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px;padding:6px;background:var(--qb-darker);z-index:10;touch-action:none"></div>
 
     {{-- Multi answer submit --}}
     <div id="multi-submit" style="display:none;position:fixed;bottom:60px;left:50%;transform:translateX(-50%);z-index:30">
@@ -68,7 +68,7 @@
     </div>
 
     {{-- Answered waiting screen --}}
-    <div id="answered-msg" style="display:none;position:fixed;inset:0;top:61px;z-index:20;background:var(--qb-darker);flex-direction:column;align-items:center;justify-content:center;gap:14px">
+    <div id="answered-msg" style="display:none;position:fixed;inset:0;top:var(--topbar-h);z-index:20;background:var(--qb-darker);flex-direction:column;align-items:center;justify-content:center;gap:14px">
       <div id="answered-block" class="answered-block-preview"></div>
       <h3 style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:1.4rem;text-transform:uppercase">Locked in!</h3>
       <p class="text-muted">Waiting for host to reveal…</p>
