@@ -68,10 +68,14 @@
     </div>
 
     {{-- Answered waiting screen --}}
-    <div id="answered-msg" style="display:none;position:fixed;inset:0;top:61px;z-index:20;background:var(--qb-darker);flex-direction:column;align-items:center;justify-content:center;gap:1rem">
-      <div style="font-size:4rem" id="answered-icon">⏳</div>
-      <h3 style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:1.4rem;text-transform:uppercase">Answer locked in!</h3>
-      <p class="text-muted">Waiting for results…</p>
+    <div id="answered-msg" style="display:none;position:fixed;inset:0;top:61px;z-index:20;background:var(--qb-darker);flex-direction:column;align-items:center;justify-content:center;gap:14px">
+      <div id="answered-block" class="answered-block-preview"></div>
+      <h3 style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:1.4rem;text-transform:uppercase">Locked in!</h3>
+      <p class="text-muted">Waiting for host to reveal…</p>
+      <div class="answered-score-badge">
+        <div class="answered-score-label">Current Score</div>
+        <div class="answered-score-val" id="answered-score-display">0</div>
+      </div>
     </div>
 
     {{-- Power-ups bar --}}
@@ -284,6 +288,15 @@
     answerSubmitted = true;
     QB.Audio.sfx.answerLocked();
     const responseTimeMs = Math.min(Date.now() - questionStartMs, timeLimit * 1000);
+    // Populate the locked-in block preview with the tapped answer
+    const tappedIdx = currentAnswerIds.indexOf(answerIds[0]);
+    const ab = document.getElementById('answered-block');
+    if (ab && tappedIdx >= 0) {
+      ab.style.background = BG_COLORS[tappedIdx];
+      ab.textContent = SHAPES[tappedIdx];
+    }
+    const asd = document.getElementById('answered-score-display');
+    if (asd) asd.textContent = myScore.toLocaleString();
     document.getElementById('answer-grid').style.display   = 'none';
     document.getElementById('multi-submit').style.display  = 'none';
     document.getElementById('answered-msg').style.display  = 'flex';
