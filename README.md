@@ -1,144 +1,97 @@
-# ⚡ QuizBlast — Kahoot-Style Live Quiz Platform
+# ⚡ QuizBlast
 
-A full-stack Laravel 11 live quiz game, inspired by Kahoot. Hosts create quizzes and launch live games with a PIN; players join on any device and answer in real time.
+**A self-hosted, Kahoot-style live quiz platform built with Laravel 11.**
+
+Hosts create quizzes and launch live games with a 6-digit PIN. Players join instantly from any browser — no app, no account required. Real-time updates are powered by WebSockets (Laravel Reverb) with a polling fallback for firewalled networks.
+
+![PHP](https://img.shields.io/badge/PHP-8.2%2B-blue?logo=php)
+![Laravel](https://img.shields.io/badge/Laravel-11-red?logo=laravel)
+![License](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
 ## Features
 
-| Feature | Details |
-|---|---|
-| 🎯 Quiz Builder | Create quizzes with 2–4 answer options per question |
-| ⚡ Live Hosting | Generate a 6-digit PIN and host live games |
-| 📱 Player Join | Players join from any browser — no account needed |
-| ⏱ Timed Questions | 5–120 second configurable timers per question |
-| 🏆 Speed Scoring | Faster correct answers earn more points |
-| 📊 Live Bar Chart | Host sees real-time answer distribution |
-| 🥇 Leaderboard | Podium + full ranking after every game |
-| 🔒 Auth | Host accounts (register / login) |
-| 🗄 SQLite/MySQL | Works out of the box with SQLite |
+| | Feature | Details |
+|---|---|---|
+| 🎯 | **Quiz Builder** | Create quizzes with 2–4 answers, images, YouTube embeds, multi-correct questions |
+| ⚡ | **Live Hosting** | 6-digit PIN, real-time player join/leave, host dashboard |
+| 📱 | **Any Device** | Players join from any browser — no install, no account needed |
+| ⏱ | **Timed Questions** | Per-question timers from 5–120 seconds |
+| 🏆 | **Speed Scoring** | Faster correct answers earn more points |
+| 💥 | **Power-ups** | Double Points, Fifty-Fifty, and Spy modifiers |
+| 📊 | **Live Bar Chart** | Host sees answer distribution as players respond |
+| 🥇 | **Leaderboard** | Podium + full ranking after every question |
+| 🎊 | **Streak Bonuses** | Consecutive correct answers earn bonus points |
+| 😊 | **Reactions** | Players send emoji reactions during gameplay |
+| 👥 | **Spectator Mode** | Watch a game live without playing |
+| 🔒 | **Host Accounts** | Register, log in, manage your quiz library |
+| 📚 | **Public Library** | Browse and play public quizzes from other hosts |
+| 🗄 | **SQLite / MySQL** | Works out of the box — no database setup needed |
 
 ---
 
-## Quick Start
+## Quick Start (60 seconds)
 
-### Requirements
-- PHP 8.2+
-- Composer
-- SQLite (built into PHP) **or** MySQL/MariaDB
-
-### Setup
+**Requirements:** PHP 8.2+, Composer
 
 ```bash
-git clone <repo>
+git clone https://github.com/hr-224/quizblast.git
 cd quizblast
 bash setup.sh
-```
-
-Then start the server:
-
-```bash
 php artisan serve
 ```
 
-Open **http://localhost:8000** in your browser.
-
-### Demo Account
-
-After running `setup.sh`:
+Open **http://localhost:8000** and log in with the demo account:
 
 ```
 Email:    demo@quizblast.app
 Password: password
 ```
 
+> Real-time WebSocket features require running the Reverb server. See [docs/websockets.md](docs/websockets.md).
+
 ---
 
-## Using MySQL / MariaDB
+## Documentation
 
-Edit `.env`:
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=quizblast
-DB_USERNAME=root
-DB_PASSWORD=yourpassword
-```
-
-Then run:
-
-```bash
-php artisan migrate --seed
-```
+| Guide | Description |
+|---|---|
+| [Installation](docs/installation.md) | Full setup walkthrough, MySQL, WebSockets |
+| [Configuration](docs/configuration.md) | Every `.env` variable explained |
+| [Gameplay Guide](docs/gameplay.md) | Hosting a game, joining, scoring, power-ups |
+| [WebSockets](docs/websockets.md) | Running Laravel Reverb locally and in production |
+| [Self-Hosting](docs/self-hosting.md) | Deploy to your own server (nginx, SSL, systemd) |
+| [Architecture](docs/architecture.md) | Tech stack, database schema, real-time design |
 
 ---
 
 ## How It Works
 
-### Hosting a Game
-1. Log in → Dashboard → **Host** on any quiz
-2. Share the 6-digit PIN with players
-3. Click **Start Game** when players are ready
-4. After each question, click **Reveal Answers**, then **Next Question**
+### Hosting a game
+1. Log in → Dashboard → press **Host** on any quiz
+2. Share the **6-digit PIN** shown on screen
+3. Wait for players to join, then click **Launch**
+4. After each question: **Reveal Answers** → **Next Question**
 5. Final podium is shown at the end
 
-### Joining a Game
-1. Go to the site root (`/`)
-2. Enter the PIN and pick a nickname
-3. Answer each question as fast as possible — speed earns bonus points!
+### Joining as a player
+1. Go to the site URL (no account needed)
+2. Enter the PIN + pick a nickname
+3. Answer each question as fast as you can — speed earns bonus points!
 
 ---
 
-## Project Structure
+## Tech Stack
 
-```
-app/
-  Http/
-    Controllers/
-      Auth/         LoginController, RegisterController
-      DashboardController
-      QuizController      (CRUD + question management)
-      GameController      (host flow + polling API)
-      PlayerController    (player flow + answer submission)
-    Middleware/
-      Authenticate.php
-  Models/
-    User, Quiz, Question, Answer, Game, GamePlayer, GameAnswer
-
-database/
-  migrations/       4 migration files
-  seeders/          DatabaseSeeder (demo quiz)
-
-resources/views/
-  layouts/          app.blade.php, game.blade.php
-  auth/             login, register
-  dashboard/        index
-  quizzes/          create, edit
-  host/             lobby, question, final
-  play/             join, lobby, game, final
-
-public/
-  css/app.css       Full custom design system
-routes/
-  web.php           All routes
-```
-
----
-
-## Polling Architecture
-
-Real-time updates use **simple HTTP polling** (no WebSockets required):
-
-- `/api/game/{pin}/state` — returns current question, timer, answer options, leaderboard
-- `/api/game/{pin}/players` — returns player list + count
-- Players and host poll every 1.5 seconds
-
-This works on any shared hosting with no extra infrastructure.
+- **Backend:** Laravel 11, PHP 8.2+
+- **Database:** SQLite (default) or MySQL / MariaDB
+- **Real-time:** [Laravel Reverb](https://reverb.laravel.com/) (WebSockets) + HTTP polling fallback
+- **Frontend:** Blade templates, vanilla CSS, vanilla JS — no Node.js build step
+- **Testing:** PHPUnit 11
 
 ---
 
 ## License
 
-MIT — free to use and modify.
+MIT — free to use, modify, and self-host.
