@@ -7,7 +7,7 @@
 
     <div style="text-align:center;margin-bottom:2rem">
       <div style="font-size:3rem;margin-bottom:.5rem">⚡</div>
-      <h1 style="font-size:2.8rem;font-family:'Montserrat',sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:-1px">QuizBlast</h1>
+      <h1 style="font-size:clamp(1.8rem,9vw,2.6rem);font-family:'Montserrat',sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:-1px">QuizBlast</h1>
       <p style="color:rgba(255,255,255,.6);margin-top:.4rem;font-size:.95rem">Enter a game PIN to join</p>
     </div>
 
@@ -22,7 +22,7 @@
           <label class="form-label">Game PIN</label>
           <input type="text" name="pin" class="form-control" value="{{ old('pin', request('pin')) }}"
                  placeholder="Enter PIN" maxlength="6" inputmode="numeric"
-                 style="font-family:'Montserrat',sans-serif;font-size:2.2rem;font-weight:900;letter-spacing:.25em;text-align:center;padding:1rem"
+                 style="font-family:'Montserrat',sans-serif;font-size:1.7rem;font-weight:900;letter-spacing:.25em;text-align:center;padding:1rem"
                  autofocus required />
           @error('pin')<span class="field-error" style="text-align:center;display:block">{{ $message }}</span>@enderror
         </div>
@@ -40,16 +40,9 @@
       </form>
     </div>
 
-    <div style="margin-top:1.25rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
-      <p style="color:rgba(255,255,255,.5);font-size:.82rem;text-align:center">
-        Want to host? <a href="{{ route('register') }}" style="color:var(--qb-yellow);font-weight:700">Create a host account</a>
-      </p>
-      @if(!session('player_account_id'))
-        <p style="color:rgba(255,255,255,.5);font-size:.82rem;text-align:center">
-          Track your stats? <a href="{{ route('player.register') }}" style="color:var(--qb-cyan);font-weight:700">Create a player account</a>
-        </p>
-      @endif
-    </div>
+    <p style="color:rgba(255,255,255,.5);font-size:.82rem;text-align:center;margin-top:1.25rem">
+      Want to host? <a href="{{ route('register') }}" style="color:var(--qb-yellow);font-weight:700">Create a host account</a>@if(!session('player_account_id')) · <a href="{{ route('player.register') }}" style="color:var(--qb-cyan);font-weight:700">Player account</a>@endif
+    </p>
   </div>
 </div>
 @endsection
