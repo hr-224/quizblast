@@ -82,7 +82,7 @@ html::-webkit-scrollbar { display: none; }
 @endpush
 
 @push('scripts')
-<script src="/js/sounds.js?v=7"></script>
+<script src="/js/sounds.js?v=8"></script>
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
 (function(){

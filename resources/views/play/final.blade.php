@@ -140,7 +140,7 @@
 @endsection
 
 @push('scripts')
-<script src="/js/sounds.js?v=7"></script>
+<script src="/js/sounds.js?v=8"></script>
 <script src="/js/confetti.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

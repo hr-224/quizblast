@@ -84,63 +84,48 @@ QB.Audio = (function(){
   function playLobbyMusic(){
     if(!mus||!ctx)return;
     resume(); stopBg();
-    var audio = new Audio('/audio/lobby-classic-game.mp3');
-    audio.loop = true;
-    audio.volume = 0.5;
-    audio.play().catch(function(){});
-    bh.push({stop:function(){ audio.pause(); audio.currentTime=0; }});
-    return;
-    if(!mus||!ctx)return;
-    resume(); stopBg();
 
-    // 120 BPM, C minor, one note plays at a time — clean and Kahoot-like
+    // 120 BPM, C minor — original composition, copyright-free
     var B=0.5; // beat = 0.5s at 120 BPM
 
-    // Simple clean melody — each note is short and staccato, no overlap
-    // [freq_hz, beat_offset, duration_beats]
+    // Melody: [freq_hz, beat_offset, duration_beats]
     var seq=[
-      // Bar 1
       [311,.0,.4],[349,.5,.4],[392,1,.4],[311,1.5,.4],
-      // Bar 2
       [554,2,.5],[587,2.6,.3],[554,3,.4],[466,3.5,.4],
-      // Bar 3
       [392,4,.4],[349,4.5,.4],[311,5,.4],[349,5.5,.4],
-      // Bar 4
       [392,6,.8],[311,7,.8],
-      // Bar 5
       [349,8,.4],[392,8.5,.4],[466,9,.4],[392,9.5,.4],
-      // Bar 6
       [554,10,.5],[587,10.6,.3],[622,11,.5],[587,11.6,.3],
-      // Bar 7
       [554,12,.4],[466,12.5,.4],[392,13,.4],[349,13.5,.4],
-      // Bar 8
       [311,14,1.0],[311,15,.8],
     ];
 
-    // Bass notes — one per bar
+    // Bass note per bar (2 beats each)
     var bass=[130,130,196,130, 175,175,196,130];
 
     function loop(startT){
       if(!mus)return;
-      var loopDur=B*32;
+      var loopDur=B*16;
 
-      // Bass only — no melody
+      // Melody
+      seq.forEach(function(note){
+        n(note[0],'sine',startT+note[1]*B,note[2]*B,0.35);
+      });
+
+      // Bass
       for(var b=0;b<8;b++){
-        var bt=startT+b*4*B;
-        n(bass[b],'sine',bt,B*1.6,0.5);
-        n(bass[b],'sine',bt+B*2,B*1.6,0.4);
+        var bt=startT+b*2*B;
+        n(bass[b],'sine',bt,B*1.5,0.45);
+        n(bass[b],'sine',bt+B,B*1.5,0.35);
       }
 
       // Drums
       for(var b2=0;b2<8;b2++){
-        var bt2=startT+b2*4*B;
-        kick(bt2);
-        kick(bt2+B*2);
-        snare(bt2+B);
-        snare(bt2+B*3);
-        kick(bt2+B*2.5); // syncopated kick
-        for(var q=0;q<8;q++){
-          hh(bt2+q*B*0.5, q%2===0?0.14:0.07);
+        var bt2=startT+b2*2*B;
+        kick(bt2); kick(bt2+B*1.5);
+        snare(bt2+B*0.5); snare(bt2+B*1.5);
+        for(var q=0;q<4;q++){
+          hh(bt2+q*B*0.5, q%2===0?0.12:0.06);
         }
       }
 

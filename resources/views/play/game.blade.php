@@ -121,7 +121,7 @@
 @endsection
 
 @push('scripts')
-<script src="/js/sounds.js?v=7"></script>
+<script src="/js/sounds.js?v=8"></script>
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
 (function(){
@@ -153,7 +153,6 @@
   const medals    = ['🥇','🥈','🥉'];
 
   document.addEventListener('click', () => { QB.Audio.init(); QB.Audio.resume(); }, { once: true });
-  QB.Audio.createControls();
 
   // Prevent scroll/pull-to-refresh on mobile
   document.addEventListener('touchmove', e => { if (document.body.classList.contains('game-active')) e.preventDefault(); }, { passive: false });
