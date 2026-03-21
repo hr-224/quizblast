@@ -76,5 +76,5 @@ Route::get('/play/{pin}/spy', [PlayerController::class, 'spy'])->name('play.spy'
 Route::delete('/play/{pin}/kick/{player}', [PlayerController::class, 'kick'])->name('play.kick')->middleware('auth');
 
 // Polling API
-Route::get('/api/game/{pin}/state', [GameController::class, 'state'])->name('api.game.state');
-Route::get('/api/game/{pin}/players', [GameController::class, 'players'])->name('api.game.players');
+Route::get('/api/game/{pin}/state', [GameController::class, 'state'])->name('api.game.state')->middleware('throttle:60,1')->where('pin', '[0-9]{6}');
+Route::get('/api/game/{pin}/players', [GameController::class, 'players'])->name('api.game.players')->middleware('throttle:60,1')->where('pin', '[0-9]{6}');

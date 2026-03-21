@@ -17,6 +17,6 @@ return [
     'domain'          => env('SESSION_DOMAIN'),
     'secure'          => true,
     'http_only'       => true,
-    'same_site'       => 'none',
+    'same_site'       => 'lax',
     'partitioned'     => false,
 ];
