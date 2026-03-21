@@ -42,7 +42,8 @@ class AnswerCountUpdated implements ShouldBroadcastNow
             'answer_counts' => $counts,
             'total_answered' => $this->game->gameAnswers()
                 ->where('question_id', $this->questionId)
-                ->count(),
+                ->distinct('game_player_id')
+                ->count('game_player_id'),
         ];
     }
 }

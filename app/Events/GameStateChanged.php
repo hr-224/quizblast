@@ -43,7 +43,8 @@ class GameStateChanged implements ShouldBroadcastNow
                 'id'         => $question->id,
                 'text'       => $question->question_text,
                 'time_limit' => $question->time_limit,
-                'points'     => $question->points,
+                'points'           => $question->points,
+                'multiple_correct' => (bool) $question->multiple_correct,
                 'answers'    => $question->answers->map(fn($a) => [
                     'id'         => $a->id,
                     'text'       => $a->answer_text,
