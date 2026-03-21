@@ -168,9 +168,17 @@
   function showLbOverlay(leaderboard) {
     const ol   = document.getElementById('lb-overlay');
     const list = document.getElementById('overlay-lb');
-    list.innerHTML = (leaderboard || []).map((p,i) =>
-      `<li class="leaderboard-item"><div class="leaderboard-rank">${medals[i]||i+1}</div><div class="leaderboard-name">${p.nickname}${p.best_streak>=3?' 🔥'+p.best_streak:''}</div><div class="leaderboard-score">${Number(p.score).toLocaleString()}</div></li>`
-    ).join('');
+    list.innerHTML = (leaderboard || []).map((p, i) => {
+      const rankClass = i === 0 ? 'lb-rank-1' : i === 1 ? 'lb-rank-2' : i === 2 ? 'lb-rank-3' : '';
+      const isMe      = p.id == playerId;
+      const youBadge  = isMe ? '<span class="lb-you-badge">you</span>' : '';
+      const streak    = p.best_streak >= 3 ? ` <span class="lb-streak-badge">🔥${p.best_streak}</span>` : '';
+      return `<li class="leaderboard-item ${rankClass}${isMe ? ' lb-me' : ''}">
+        <div class="leaderboard-rank">${medals[i] || i+1}</div>
+        <div class="leaderboard-name">${p.nickname}${streak}${youBadge}</div>
+        <div class="leaderboard-score">${Number(p.score).toLocaleString()}</div>
+      </li>`;
+    }).join('');
     ol.style.display = 'flex';
     QB.Audio.sfx.leaderboard();
     if (lbOverlayTimer) clearTimeout(lbOverlayTimer);
