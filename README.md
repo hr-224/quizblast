@@ -33,24 +33,23 @@ Hosts create quizzes and launch live games with a 6-digit PIN. Players join inst
 
 ## Installation
 
-**Requirements:** PHP 8.2+, Composer, MySQL or MariaDB
+**Requirements:** PHP 8.2+, Composer, MySQL or MariaDB, nginx or Apache 2.4
 
 ```bash
 git clone https://github.com/hr-224/quizblast.git
 cd quizblast
 composer install
-php artisan serve
 ```
 
-Then open **http://localhost:8000/install/** in your browser and follow the setup wizard.
+Point your web server's document root at the `public/` directory, then open **`http://yourdomain.com/install/`** in your browser and follow the setup wizard.
 
 The installer will:
 - Check PHP version and required extensions
-- Test and configure your database connection
-- Set up your site URL and admin account
+- Test and configure your MySQL/MariaDB connection
+- Set your site URL and create your admin account
 - Run all migrations automatically
 
-> See [docs/installation.md](docs/installation.md) for the full guide, including production deployment.
+> See [docs/installation.md](docs/installation.md) for nginx and Apache virtual host configs, and the full production guide.
 
 ---
 
@@ -58,11 +57,11 @@ The installer will:
 
 | Guide | Description |
 |---|---|
-| [Installation](docs/installation.md) | Web installer walkthrough, server requirements |
+| [Installation](docs/installation.md) | Web installer walkthrough, nginx and Apache configs |
 | [Configuration](docs/configuration.md) | Every `.env` variable explained |
 | [Gameplay Guide](docs/gameplay.md) | Hosting a game, joining, scoring, power-ups |
-| [WebSockets](docs/websockets.md) | Running Laravel Reverb locally and in production |
-| [Self-Hosting](docs/self-hosting.md) | Deploy to your own server (nginx, SSL, systemd) |
+| [WebSockets](docs/websockets.md) | Running Laravel Reverb with nginx and Apache |
+| [Self-Hosting](docs/self-hosting.md) | Full production deployment guide |
 | [Architecture](docs/architecture.md) | Tech stack, database schema, real-time design |
 
 Also available as a [GitHub Wiki](https://github.com/hr-224/quizblast/wiki).
@@ -90,6 +89,7 @@ Also available as a [GitHub Wiki](https://github.com/hr-224/quizblast/wiki).
 - **Backend:** Laravel 11, PHP 8.2+
 - **Database:** MySQL / MariaDB
 - **Real-time:** [Laravel Reverb](https://reverb.laravel.com/) (WebSockets) + HTTP polling fallback
+- **Web Server:** nginx or Apache 2.4
 - **Frontend:** Blade templates, vanilla CSS, vanilla JS — no Node.js build step
 - **Testing:** PHPUnit 11
 

@@ -4,100 +4,140 @@
 
 | Requirement | Minimum | Notes |
 |---|---|---|
-| PHP | 8.2+ | Extensions: pdo, pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, json, curl |
+| PHP | 8.2+ | Extensions: pdo_mysql, mbstring, openssl, tokenizer, xml, ctype, json, curl |
 | Composer | 2.x | [getcomposer.org](https://getcomposer.org) |
 | Database | — | MySQL 8+ or MariaDB 10.3+ |
-| Web Server | — | PHP built-in (`php artisan serve`) for local dev; nginx for production |
+| Web Server | — | nginx **or** Apache 2.4 with `mod_rewrite` |
 
 ---
 
-## Web Installer (recommended)
-
-QuizBlast includes a browser-based setup wizard. No command line knowledge required beyond cloning the repo.
-
-### 1. Clone and install dependencies
+## Step 1 — Clone and install dependencies
 
 ```bash
 git clone https://github.com/hr-224/quizblast.git
 cd quizblast
-composer install
+composer install --no-dev --optimize-autoloader
 ```
 
-### 2. Start the development server
+Fix directory permissions:
 
 ```bash
-php artisan serve
+chmod -R 775 storage bootstrap/cache
 ```
 
-### 3. Open the installer
+---
 
-Visit **http://localhost:8000/install/** in your browser.
+## Step 2 — Configure your web server
 
-If you navigate to `http://localhost:8000` without a configured `.env`, you'll be redirected to the installer automatically.
+Point your web server's document root at the `public/` directory. Choose one:
+
+### nginx
+
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com;
+
+    root /var/www/quizblast/public;
+    index index.php;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+```
+
+Reload nginx: `sudo nginx -t && sudo systemctl reload nginx`
+
+### Apache 2.4
+
+Enable required modules first:
+
+```bash
+sudo a2enmod rewrite proxy proxy_http proxy_wstunnel
+```
+
+Create a virtual host:
+
+```apache
+<VirtualHost *:80>
+    ServerName yourdomain.com
+    DocumentRoot /var/www/quizblast/public
+
+    <Directory /var/www/quizblast/public>
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog  ${APACHE_LOG_DIR}/quizblast-error.log
+    CustomLog ${APACHE_LOG_DIR}/quizblast-access.log combined
+</VirtualHost>
+```
+
+The `public/.htaccess` included in the repo handles URL rewriting — no extra configuration needed.
+
+Reload Apache: `sudo a2ensite quizblast && sudo systemctl reload apache2`
+
+---
+
+## Step 3 — Run the web installer
+
+Open **`http://yourdomain.com/install/`** in your browser.
+
+If you visit the root URL without a configured `.env`, you will be redirected to the installer automatically.
 
 ### Installer steps
 
-**Step 1 — Requirements check**
-The installer verifies your PHP version, required extensions, and that the `storage/` and `bootstrap/cache/` directories are writable. Fix any red items before proceeding.
+1. **Requirements** — checks PHP version, extensions, and directory permissions
+2. **Database** — enter MySQL/MariaDB credentials; the installer tests the connection and creates the database if needed
+3. **Site Settings** — set site name, URL, and create your admin account; optionally include sample quiz content
+4. **Install** — runs migrations, generates the app key, creates your account; shows a live log
 
-**Step 2 — Database**
-Enter your MySQL/MariaDB credentials. Use "Test Connection" to verify before continuing. The installer will create the database if it doesn't already exist.
-
-**Step 3 — Site settings**
-Set your site name, URL, and create your admin account. Optionally include sample quiz content (5 questions) to test the game immediately.
-
-**Step 4 — Install**
-Click "Install →" and watch the installer run migrations and set up your account. Takes 10–30 seconds.
-
-Once complete, click **Open QuizBlast** to go directly to the app.
+When complete, click **Open QuizBlast** to go to the app.
 
 ---
 
-## Manual / CLI Setup
+## Manual / CLI setup
 
-For headless servers or automated deployments:
+For headless servers or automated deployments where you can't use a browser:
 
 ```bash
-git clone https://github.com/hr-224/quizblast.git
-cd quizblast
-composer install
-
-# Copy and edit config
 cp .env.example .env
-# → Set DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD, APP_URL
+# Edit .env: set APP_URL, DB_HOST, DB_DATABASE, DB_USERNAME, DB_PASSWORD
 
 php artisan key:generate
 php artisan migrate --force
 
-# Create admin account
-php artisan tinker
-> \App\Models\User::create(['name'=>'Admin','email'=>'you@example.com','password'=>bcrypt('yourpassword')])
+# Create your admin account
+php artisan tinker --execute="\App\Models\User::create(['name'=>'Admin','email'=>'you@example.com','password'=>bcrypt('yourpassword')]);"
 
-# Fix permissions
-chmod -R 775 storage bootstrap/cache
-
-# Mark as installed so web installer shows "already installed"
+# Mark installer as complete
 touch install/.installed
 ```
 
 ---
 
-## Enable Real-Time WebSockets (optional for local dev)
+## Enable WebSockets (optional)
 
-Start the Reverb WebSocket server in a second terminal:
+WebSockets power the live player count, join ticker, and emoji reactions. Without them, the game works via HTTP polling.
 
-```bash
-php artisan reverb:start
-```
-
-Without Reverb, the app uses HTTP polling — all game features work, but the lobby player count, join ticker, and emoji reactions require WebSockets.
-
-See [websockets.md](websockets.md) for production configuration.
+Start the Reverb server as a background service — see [websockets.md](websockets.md) for the full setup including nginx proxy and Apache mod_proxy_wstunnel configuration.
 
 ---
 
 ## Next Steps
 
 - [Configuration reference](configuration.md) — all `.env` variables explained
-- [WebSockets setup](websockets.md) — Reverb local and production
-- [Self-hosting guide](self-hosting.md) — nginx, SSL, systemd on your own server
+- [WebSockets setup](websockets.md) — Reverb with nginx and Apache
+- [Self-hosting guide](self-hosting.md) — SSL, systemd, full production checklist

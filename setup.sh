@@ -1,14 +1,14 @@
 #!/bin/bash
 # ============================================================
-#  QuizBlast – CLI Setup (for servers without a browser)
+#  QuizBlast – CLI Setup (headless / automated environments)
 #
-#  Most users should use the web installer instead:
+#  For a guided browser-based install, use the web installer:
 #    1. composer install
-#    2. php artisan serve
-#    3. Open http://localhost:8000/install/
+#    2. Point nginx or Apache at the public/ directory
+#    3. Open http://yourdomain.com/install/ in your browser
 #
-#  This script is for headless/automated environments.
-#  Requires MySQL/MariaDB — edit .env before running.
+#  See docs/installation.md for web server configuration.
+#  This script is for servers without a browser.
 # ============================================================
 set -e
 
@@ -39,14 +39,14 @@ fi
 # 3. Install dependencies
 echo ""
 echo "📦  Installing PHP dependencies..."
-$COMPOSER install --no-interaction --prefer-dist --optimize-autoloader
+$COMPOSER install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
 # 4. Environment
 if [ ! -f .env ]; then
   cp .env.example .env
   echo "✓  .env created from example"
   echo ""
-  echo "⚠️  Edit .env and set your MySQL credentials before continuing."
+  echo "⚠️  Edit .env and configure APP_URL and your MySQL credentials."
   echo "    Then re-run this script."
   exit 0
 fi
@@ -60,25 +60,28 @@ echo "🗄   Running migrations..."
 php artisan migrate --force
 
 # 7. Fix storage permissions
-php artisan storage:link 2>/dev/null || true
 mkdir -p storage/framework/{cache,sessions,views}
 chmod -R 775 storage bootstrap/cache
 
-# 8. Create installer lock so web installer shows "already installed"
+# 8. Cache config
+php artisan config:cache
+
+# 9. Write installer lock
 touch install/.installed
 
 echo ""
 echo "============================================================"
 echo "✅  Setup complete!"
 echo ""
-echo "   Add an admin account:"
+echo "   Create your admin account:"
 echo "   php artisan tinker"
 echo "   > \\App\\Models\\User::create(['name'=>'Admin','email'=>'you@example.com','password'=>bcrypt('yourpassword')])"
 echo ""
-echo "   Start the dev server:"
-echo "   php artisan serve"
+echo "   Ensure nginx or Apache is pointing to: $(pwd)/public"
 echo ""
-echo "   (Optional) Enable WebSockets in a second terminal:"
-echo "   php artisan reverb:start"
+echo "   (Optional) Start WebSocket server:"
+echo "   php artisan reverb:start --host=127.0.0.1 --port=7001"
+echo ""
+echo "   Docs: https://github.com/hr-224/quizblast/tree/master/docs"
 echo "============================================================"
 echo ""

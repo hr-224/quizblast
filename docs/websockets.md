@@ -17,67 +17,54 @@ QuizBlast uses [Laravel Reverb](https://reverb.laravel.com/) for real-time WebSo
 
 ---
 
-## Local Development
+## How it works
 
-Start the Reverb WebSocket server alongside `php artisan serve`:
+Reverb runs as a background process on a private port (default `7001`). Your web server (nginx or Apache) proxies WebSocket connections from the browser to that process over the standard HTTPS port (443).
 
-```bash
-# Terminal 1 — web server
-php artisan serve
-
-# Terminal 2 — WebSocket server
-php artisan reverb:start
 ```
-
-The Reverb server starts on port **8080** by default. Your `.env` should have:
-
-```env
-BROADCAST_DRIVER=reverb
-REVERB_HOST=127.0.0.1
-REVERB_PORT=8080
-REVERB_SCHEME=http
-REVERB_SERVER_HOST=0.0.0.0
-REVERB_SERVER_PORT=8080
+Browser  ──wss://yourdomain.com/app──►  nginx/Apache (443)
+                                               │
+                                        proxy_pass ws://
+                                               │
+                                        Reverb (:7001)
 ```
-
-### Disabling WebSockets (polling-only mode)
-
-If you don't need real-time features locally, set:
-
-```env
-BROADCAST_DRIVER=log
-```
-
-This silently logs broadcast events instead of sending them — the game works fine via polling.
 
 ---
 
-## Production
+## Run Reverb as a systemd service
 
-In production, Reverb runs as a background process on a private port, and nginx proxies WebSocket connections over SSL.
+Create `/etc/systemd/system/quizblast-reverb.service`:
 
-### 1. Configure `.env`
+```ini
+[Unit]
+Description=QuizBlast Reverb WebSocket Server
+After=network.target
 
-```env
-BROADCAST_DRIVER=reverb
+[Service]
+User=www-data
+WorkingDirectory=/var/www/quizblast
+ExecStart=/usr/bin/php artisan reverb:start --host=127.0.0.1 --port=7001
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
 
-REVERB_APP_ID=your_app_id
-REVERB_APP_KEY=your_app_key
-REVERB_APP_SECRET=your_app_secret
-
-# What the browser connects to (your public domain)
-REVERB_HOST=yourdomain.com
-REVERB_PORT=443
-REVERB_SCHEME=https
-
-# What the Reverb process binds to (internal)
-REVERB_SERVER_HOST=127.0.0.1
-REVERB_SERVER_PORT=7001
+[Install]
+WantedBy=multi-user.target
 ```
 
-### 2. Add nginx WebSocket proxy block
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable quizblast-reverb
+sudo systemctl start quizblast-reverb
+sudo systemctl status quizblast-reverb
+```
 
-Inside your nginx `server` block (after your existing `location /` block):
+---
+
+## nginx WebSocket proxy
+
+Add this block inside your `server { }` block, **after** the `location /` block:
 
 ```nginx
 location /app {
@@ -93,61 +80,77 @@ location /app {
 }
 ```
 
-### 3. Run Reverb as a systemd service
+Reload: `sudo nginx -t && sudo systemctl reload nginx`
 
-Create `/etc/systemd/system/quizblast-reverb.service`:
+---
 
-```ini
-[Unit]
-Description=QuizBlast Reverb WebSocket Server
-After=network.target
+## Apache 2.4 WebSocket proxy
 
-[Service]
-User=www-data
-WorkingDirectory=/var/www/quizblast
-ExecStart=/usr/bin/php artisan reverb:start --host=127.0.0.1 --port=7001
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start:
+Enable the required modules:
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable quizblast-reverb
-sudo systemctl start quizblast-reverb
-
-# Check status
-sudo systemctl status quizblast-reverb
+sudo a2enmod proxy proxy_http proxy_wstunnel
 ```
 
-### 4. Verify
+Add these directives inside your `<VirtualHost>` block:
 
-```bash
-# Check the process is running
-sudo systemctl status quizblast-reverb
+```apache
+# WebSocket proxy (Reverb)
+ProxyRequests Off
 
-# Test WebSocket connection (requires wscat: npm i -g wscat)
-wscat -c "wss://yourdomain.com/app/your_app_key"
+<Location /app>
+    ProxyPass        ws://127.0.0.1:7001/app
+    ProxyPassReverse ws://127.0.0.1:7001/app
+</Location>
 ```
+
+Reload: `sudo systemctl reload apache2`
+
+---
+
+## `.env` configuration
+
+```env
+BROADCAST_DRIVER=reverb
+
+# What the browser connects to (your public domain)
+REVERB_HOST=yourdomain.com
+REVERB_PORT=443
+REVERB_SCHEME=https
+
+# What the Reverb process binds to (internal only)
+REVERB_SERVER_HOST=127.0.0.1
+REVERB_SERVER_PORT=7001
+```
+
+The `REVERB_APP_ID`, `REVERB_APP_KEY`, and `REVERB_APP_SECRET` are generated automatically by the web installer. If setting up manually, use any random strings (key and secret should be hex).
+
+---
+
+## Disabling WebSockets (polling-only mode)
+
+If you don't need real-time lobby or reactions, set:
+
+```env
+BROADCAST_DRIVER=log
+```
+
+All game features work; the lobby player count/ticker and emoji reactions are the only things that require WebSockets.
 
 ---
 
 ## Troubleshooting
 
 **Players stuck on "Connecting…"**
-- Check Reverb is running: `systemctl status quizblast-reverb`
-- Check nginx WebSocket proxy block is present and nginx was reloaded
-- Ensure `REVERB_HOST` matches your domain exactly (no trailing slash)
-- Check firewall: port 7001 must be open internally (not publicly — nginx proxies it)
+- Check Reverb is running: `sudo systemctl status quizblast-reverb`
+- Check the proxy block is present and the web server was reloaded
+- Confirm `REVERB_HOST` matches your domain exactly (no trailing slash, no port suffix for 443)
+- Check your firewall allows port 7001 internally (it should NOT be public — the proxy handles it)
 
-**WebSocket connection closes immediately**
-- Check `REVERB_APP_KEY` in `.env` matches what the browser sends (visible in browser DevTools → Network → WS tab)
-- Ensure `APP_URL` is set to your full domain with protocol (`https://yourdomain.com`)
+**WebSocket closes immediately**
+- Verify `REVERB_APP_KEY` in `.env` matches what's used in the Pusher client (visible in browser DevTools → Network → WS tab)
+- Ensure `APP_URL` includes the protocol: `https://yourdomain.com`
 
-**Fallback to polling**
-- If Reverb is not running, the game automatically falls back to polling — game still works, just without the lobby count/ticker/reactions
-- Check browser console for WebSocket connection errors
+**Apache: 502 Bad Gateway on `/app`**
+- Confirm `mod_proxy_wstunnel` is enabled: `apache2ctl -M | grep wstunnel`
+- Confirm Reverb is running on port 7001: `ss -tlnp | grep 7001`
