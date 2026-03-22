@@ -419,13 +419,15 @@
       QB.Audio.sfx.reveal();
       const q = data.question;
 
-      document.getElementById('review-icon').textContent   = lastAnswerCorrect===null ? '⏭' : (lastAnswerCorrect ? '✅' : '❌');
-      document.getElementById('review-title').textContent  = lastAnswerCorrect===null ? "Time's up!" : (lastAnswerCorrect ? 'Correct!' : 'Wrong!');
+      const isPartial = lastAnswerCorrect === 'partial';
+      document.getElementById('review-icon').textContent   = lastAnswerCorrect === null ? '⏭' : (lastAnswerCorrect === true ? '✅' : (isPartial ? '⭐' : '❌'));
+      document.getElementById('review-title').textContent  = lastAnswerCorrect === null ? "Time's up!" : (lastAnswerCorrect === true ? 'Correct!' : (isPartial ? 'Partial Credit!' : 'Wrong!'));
       const vc = document.getElementById('review-verdict-card');
       if (vc) {
         vc.className = 'review-verdict-card ' +
-          (lastAnswerCorrect === true  ? 'review-verdict-correct' :
-           lastAnswerCorrect === false ? 'review-verdict-wrong'   : 'review-verdict-neutral');
+          (lastAnswerCorrect === true  ? 'review-verdict-correct'  :
+           isPartial                   ? 'review-verdict-partial'  :
+           lastAnswerCorrect === false  ? 'review-verdict-wrong'    : 'review-verdict-neutral');
       }
       document.getElementById('review-points').textContent = lastPointsEarned > 0
         ? `+${lastPointsEarned} points${lastStreakBonus > 0 ? ` (incl. +${lastStreakBonus} streak bonus)` : ''}`

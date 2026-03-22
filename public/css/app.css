@@ -286,6 +286,7 @@ textarea.form-control{resize:vertical;min-height:80px}
 .review-verdict-card { width: 100%; border-radius: 12px; padding: 18px 16px 14px; margin-bottom: 1rem; display: flex; flex-direction: column; align-items: center; }
 .review-verdict-correct { background: rgba(38,137,12,.15);  border: 2px solid rgba(38,137,12,.4); }
 .review-verdict-wrong   { background: rgba(226,27,60,.12);   border: 2px solid rgba(226,27,60,.35); }
+.review-verdict-partial { background: rgba(255,208,0,.08);   border: 2px solid var(--qb-yellow); }
 .review-verdict-neutral { background: rgba(255,255,255,.05); border: 2px solid rgba(255,255,255,.1); }
 
 /* ── Review verdict card title colours ── */
