@@ -20,10 +20,10 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
 
-// Player Accounts
-Route::get('/account/register', [PlayerAuthController::class, 'showRegister'])->name('player.register');
+// Player Accounts — legacy redirects keep old URLs working
+Route::get('/account/register', fn() => redirect()->route('register'))->name('player.register');
+Route::get('/account/login', fn() => redirect()->route('login'))->name('player.login');
 Route::post('/account/register', [PlayerAuthController::class, 'register']);
-Route::get('/account/login', [PlayerAuthController::class, 'showLogin'])->name('player.login');
 Route::post('/account/login', [PlayerAuthController::class, 'login']);
 Route::post('/account/logout', [PlayerAuthController::class, 'logout'])->name('player.logout');
 Route::get('/account/stats', [PlayerAuthController::class, 'stats'])->name('player.stats');

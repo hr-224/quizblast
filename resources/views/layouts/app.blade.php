@@ -33,9 +33,8 @@
             <button type="submit" class="btn btn-outline btn-sm">Log out</button>
           </form>
         @else
-          <a href="{{ route('player.login') }}" class="nav-link">My Stats</a>
-          <a href="{{ route('login') }}" class="nav-link">Host Login</a>
-          <a href="{{ route('register') }}" class="btn btn-white btn-sm">Host Sign Up</a>
+          <a href="{{ route('login') }}" class="nav-link">Sign In</a>
+          <a href="{{ route('register') }}" class="btn btn-white btn-sm">Sign Up</a>
         @endif
       @endauth
     </div>{{-- /.navbar-nav #nav-links --}}
@@ -59,9 +58,8 @@
           <button type="submit" class="nav-dropdown-link nav-dropdown-btn">Log out</button>
         </form>
       @else
-        <a href="{{ route('player.login') }}" class="nav-dropdown-link">My Stats</a>
-        <a href="{{ route('login') }}" class="nav-dropdown-link">Host Login</a>
-        <a href="{{ route('register') }}" class="nav-dropdown-link" style="color:var(--qb-yellow)">Host Sign Up</a>
+        <a href="{{ route('login') }}" class="nav-dropdown-link">Sign In</a>
+        <a href="{{ route('register') }}" class="nav-dropdown-link" style="color:var(--qb-yellow)">Sign Up</a>
       @endif
     @endauth
   </div>
