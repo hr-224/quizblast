@@ -458,15 +458,20 @@
     try { const res = await fetch(`/api/game/${pin}/state`); const data = await res.json(); handleStateChange(data); } catch(e) {}
   }
 
-  const pusher = new Pusher(appKey, { wsHost, wsPort:443, wssPort:443, forceTLS:true, enabledTransports:['ws','wss'], disableStats:true, cluster:'mt1' });
-  const channel = pusher.subscribe('game.' + pin);
-
-  channel.bind('game-state-changed', handleStateChange);
-  channel.bind('player-kicked', data => { if(data.player_id == playerId) window.location.href='/play?kicked=1'; });
-
-  setInterval(async () => { if (pusher.connection.state !== 'connected') pollState(); }, 5000);
-  setInterval(() => { fetch(`/play/${pin}/heartbeat`, {method:'POST', headers:{'X-CSRF-TOKEN':csrfToken}}); }, 5000);
+  // Poll immediately so the UI shows something even if Pusher fails to load
   pollState();
+
+  try {
+    const pusher = new Pusher(appKey, { wsHost, wsPort:443, wssPort:443, forceTLS:true, enabledTransports:['ws','wss'], disableStats:true, cluster:'mt1' });
+    const channel = pusher.subscribe('game.' + pin);
+    channel.bind('game-state-changed', handleStateChange);
+    channel.bind('player-kicked', data => { if(data.player_id == playerId) window.location.href='/play?kicked=1'; });
+    setInterval(async () => { if (pusher.connection.state !== 'connected') pollState(); }, 5000);
+  } catch(e) {
+    // Pusher unavailable — fall back to polling every 3s
+    setInterval(pollState, 3000);
+  }
+  setInterval(() => { fetch(`/play/${pin}/heartbeat`, {method:'POST', headers:{'X-CSRF-TOKEN':csrfToken}}); }, 5000);
 })();
 </script>
 <style>
