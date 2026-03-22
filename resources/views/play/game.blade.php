@@ -141,13 +141,14 @@
   let activePowerUp     = null;
   let usedPowerUps      = new Set({{ json_encode($player->power_ups ?? []) }});
   let reviewSoundPlayed = false;
+  let reviewingActive   = false;
 
   // Play correct/wrong sound once both conditions are met:
-  // (1) reviewing state is showing, (2) server answered with result.
+  // (1) reviewing state is showing on screen, (2) server returned the result.
   // Called from both the reviewing handler and submitAnswer — whichever
   // arrives last wins; the flag prevents a double-play.
   function playAnswerResultSound() {
-    if (reviewSoundPlayed || lastAnswerCorrect === null) return;
+    if (reviewSoundPlayed || !reviewingActive || lastAnswerCorrect === null) return;
     reviewSoundPlayed = true;
     if (lastAnswerCorrect === true)  QB.Audio.sfx.correct();
     if (lastAnswerCorrect === false) QB.Audio.sfx.wrong();
@@ -370,6 +371,7 @@
         lastStreakBonus   = 0;
         activePowerUp     = null;
         reviewSoundPlayed = false;
+        reviewingActive   = false;
         isMultiple        = q.multiple_correct;
 
         document.getElementById('q-progress').textContent    = `Q${data.current_question+1}/${data.total_questions}`;
@@ -433,6 +435,7 @@
         ? `+${lastPointsEarned} points${lastStreakBonus > 0 ? ` (incl. +${lastStreakBonus} streak bonus)` : ''}`
         : (lastAnswerCorrect === false ? 'No points this round' : '');
 
+      reviewingActive = true;
       playAnswerResultSound();
 
       const streakEl = document.getElementById('review-streak');
