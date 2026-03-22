@@ -13,16 +13,14 @@ class SampleQuizzesSeeder extends Seeder
 {
     public function run(): void
     {
-        // Find the first existing user, or create a default host account
-        $user = User::first();
-        if (!$user) {
-            $user = User::create([
-                'name'     => 'HR224',
-                'email'    => 'admin@quizblast.app',
-                'password' => Hash::make('changeme123'),
-            ]);
-            $this->command?->info("Created host account: admin@quizblast.app / changeme123 — change this password after logging in.");
-        }
+        // Find HR224's account, fall back to first user, or create one
+        $user = User::where('email', 'hr@ultimate-mods.com')->first()
+             ?? User::first()
+             ?? User::create([
+                    'name'     => 'HR224',
+                    'email'    => 'hr@ultimate-mods.com',
+                    'password' => Hash::make('changeme123'),
+                ]);
         $userId = $user->id;
 
         $quizzes = $this->quizData();

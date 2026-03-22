@@ -12,7 +12,7 @@ class GameController extends Controller
 {
     public function start(Quiz $quiz)
     {
-        if ($quiz->user_id !== auth()->id()) abort(403);
+        if (!$quiz->is_public && $quiz->user_id !== auth()->id()) abort(403);
         if ($quiz->questions()->count() === 0) {
             return redirect()->route('quizzes.edit', $quiz)->with('error', 'Add at least one question before hosting.');
         }
