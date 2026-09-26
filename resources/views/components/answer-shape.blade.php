@@ -6,6 +6,6 @@
         'M9 2h6v7h7v6h-7v7H9v-7H2V9h7z',
         'M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z',
     ];
-    $d = $shapes[((int) $index) % 4];
+    $d = $shapes[((((int) $index) % 4) + 4) % 4];
 @endphp
-<svg class="ans-shape" viewBox="0 0 24 24" aria-hidden="true" focusable="false" {{ $attributes }}><path d="{{ $d }}" fill="currentColor"/></svg>
+<svg {{ $attributes->merge(['class' => 'ans-shape']) }} viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="{{ $d }}" fill="currentColor"/></svg>

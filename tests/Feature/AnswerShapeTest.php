@@ -30,6 +30,22 @@ class AnswerShapeTest extends TestCase
         $this->assertStringContainsString('d="' . self::PATHS[1] . '"', $html);
     }
 
+    public function test_component_negative_index_wraps_like_the_js_twin(): void
+    {
+        $html = Blade::render('<x-answer-shape :index="-1" />');
+        $this->assertStringContainsString('d="' . self::PATHS[3] . '"', $html);
+        $html = Blade::render('<x-answer-shape :index="-5" />');
+        $this->assertStringContainsString('d="' . self::PATHS[3] . '"', $html);
+    }
+
+    public function test_caller_class_merges_into_a_single_class_attribute(): void
+    {
+        $html = Blade::render('<x-answer-shape :index="0" class="big" />');
+        $this->assertSame(1, substr_count($html, 'class='));
+        $this->assertMatchesRegularExpression('/class="[^"]*\bans-shape\b[^"]*"/', $html);
+        $this->assertMatchesRegularExpression('/class="[^"]*\bbig\b[^"]*"/', $html);
+    }
+
     public function test_js_shapes_match_the_blade_component(): void
     {
         $js = file_get_contents(public_path('js/shapes.js'));
