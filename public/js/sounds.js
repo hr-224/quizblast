@@ -1,6 +1,7 @@
 const QB = window.QB || {};
 QB.Audio = (function(){
   var ctx=null, mg=null, bh=[], mus=true, sfxOn=true, init_=false;
+  try{ if(window.localStorage.getItem('qb-muted')==='1'){ mus=false; sfxOn=false; } }catch(e){}
 
   function init(){
     if(init_)return;
@@ -197,6 +198,7 @@ QB.Audio = (function(){
     playLobbyMusic:playLobbyMusic, playGameMusic:playGameMusic, stopBg:stopBg,
     toggleMusic:function(){ mus=!mus; if(!mus) stopBg(); else playLobbyMusic(); updateBtns(); },
     toggleSFX:  function(){ sfxOn=!sfxOn; updateBtns(); },
+    setMuted:   function(m){ mus=!m; sfxOn=!m; if(m) stopBg(); updateBtns(); },
     createControls:createControls,
   };
 })();
