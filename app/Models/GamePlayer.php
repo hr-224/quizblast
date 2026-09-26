@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Events\PlayerLeft;
 use Illuminate\Database\Eloquent\Model;
 
 class GamePlayer extends Model
@@ -47,13 +48,17 @@ class GamePlayer extends Model
     public static function removeStale(int $gameId): void
     {
         $stale = static::where('game_id', $gameId)
-            ->where('last_seen_at', '<', now()->subSeconds(60))
+            ->where('last_seen_at', '<', now()->subSeconds(20))
             ->whereNotNull('last_seen_at')
             ->where('is_spectator', false)
             ->get();
 
+        if ($stale->isEmpty()) return;
+
+        $game = \App\Models\Game::find($gameId);
         foreach ($stale as $player) {
             $player->delete();
         }
+        if ($game) broadcast(new PlayerLeft($game));
     }
 }

@@ -6,7 +6,7 @@
 @endsection
 
 @section('topbar-right')
-  <a href="{{ route('play.join') }}" class="btn btn-outline btn-sm">Leave</a>
+  <button class="btn btn-outline btn-sm" id="leave-btn" onclick="leaveGame()">Leave</button>
 @endsection
 
 @section('content')
@@ -64,14 +64,17 @@
 
   channel.bind('player-kicked', function(data) {
     if (data.player_id == {{ session('player_id_' . $game->pin) ?? 0 }}) {
+      leftAlready = true;
       window.location.href = '/play?kicked=1';
     }
   });
 
   channel.bind('game-state-changed', function(data) {
     if (data.status === 'question' || data.status === 'reviewing') {
+      leftAlready = true;
       window.location.href = '/play/' + pin + '/game';
     } else if (data.status === 'finished') {
+      leftAlready = true;
       window.location.href = '/play/' + pin + '/final';
     }
   });
@@ -83,8 +86,10 @@
         const res  = await fetch('/api/game/' + pin + '/state');
         const data = await res.json();
         if (data.status === 'question' || data.status === 'reviewing') {
+          leftAlready = true;
           window.location.href = '/play/' + pin + '/game';
         } else if (data.status === 'finished') {
+          leftAlready = true;
           window.location.href = '/play/' + pin + '/final';
         }
       } catch(e) {}
@@ -96,6 +101,29 @@
   setInterval(() => {
     fetch('/play/' + pin + '/heartbeat', { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken } });
   }, 5000);
+
+  // Leave helpers
+  var leftAlready = false;
+  function leaveGame() {
+    if (leftAlready) return;
+    leftAlready = true;
+    navigator.sendBeacon('/play/' + pin + '/leave');
+    window.location.href = '{{ route('play.join') }}';
+  }
+
+  // Fire leave on browser close / tab switch away
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'hidden' && !leftAlready) {
+      navigator.sendBeacon('/play/' + pin + '/leave');
+      leftAlready = true;
+    }
+  });
+  window.addEventListener('pagehide', function() {
+    if (!leftAlready) {
+      navigator.sendBeacon('/play/' + pin + '/leave');
+      leftAlready = true;
+    }
+  });
 
   // Initial player count
   fetch('/api/game/' + pin + '/players')
