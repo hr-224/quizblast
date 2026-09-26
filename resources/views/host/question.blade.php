@@ -136,7 +136,7 @@
   @php $shapes = ['▲','◆','●','■']; $colors = ['a0','a1','a2','a3']; @endphp
   @if($game->status === 'reviewing')
   @php
-    $chartColors = ['#e21b3c','#1368ce','#d89e00','#26890c'];
+    $chartColors = ['#ff5d73','#22d3ee','#a3e635','#fbbf24'];
     $maxCount    = max(1, $answerCounts->max() ?? 1);
   @endphp
   <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);padding:1rem 1.25rem .9rem;margin-bottom:1.25rem">
