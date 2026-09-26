@@ -191,19 +191,23 @@ points_earned = base_points + time_bonus
 
 ## CSS Design System
 
-`public/css/app.css` is a single-file design system with no build pipeline:
+`public/css/app.css` is a single hand-written stylesheet (no build pipeline), ordered as: self-hosted `@font-face` → design tokens → base → components → Calm/Party effects → legacy screen styles → per-screen styles.
+
+Key tokens (see the `:root` block for the full list):
 
 ```css
-/* CSS custom properties (design tokens) */
---qb-bg:      #0e0b1e   /* page background */
---qb-darker:  #080612   /* deeper dark */
---qb-purple:  #6c3ee8   /* primary brand */
---qb-cyan:    #00d2ff   /* accent */
---qb-yellow:  #ffd000   /* highlight */
---qb-green:   #26890c   /* correct/success */
---qb-red:     #e21b3c   /* wrong/danger */
---qb-muted:   rgba(255,255,255,0.45)
---radius:     10px
+--ink:#0b0a1a        /* page background */
+--surface:#15132b    /* cards */
+--violet-deep:#5b3df0 /* primary button (white text) */
+--ans-coral:#ff5d73  --ans-cyan:#22d3ee  --ans-lime:#a3e635  --ans-amber:#fbbf24  /* answer tiles, ink text */
+--font-display:'Lexend'   --font-body:'Atkinson Hyperlegible'
 ```
 
-Fonts are loaded from Google Fonts: **Montserrat** (headings, scores), **Source Sans 3** (body).
+Rules that are enforced by tests:
+- Every text/background token pair meets WCAG AA (`DesignTokensTest`).
+- No `@layer`, `:has()`, `color-mix()` or container queries — old school iPads (iOS < 15.4) cannot parse them.
+- Answer tiles pair each color with a shape (star, hexagon, plus, crescent): `<x-answer-shape :index="n" />` in Blade, `QB.Shapes.svg(n)` in JS.
+
+Effects: `<html data-fx="calm|party">`, stored in `localStorage['qb-fx']`, defaulting to calm when the OS requests reduced motion. Sound mute is `localStorage['qb-muted']`. Both are driven by `public/js/qb-ui.js`.
+
+Fonts (Lexend, Atkinson Hyperlegible) are self-hosted in `public/fonts/`, so no third-party font requests are made.

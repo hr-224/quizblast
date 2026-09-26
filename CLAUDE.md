@@ -40,6 +40,8 @@ php artisan reverb:start --host=127.0.0.1 --port=7001   # optional WebSocket ser
 
 **Views/frontend.** Blade layouts in `resources/views/layouts/` (`app` and `game`); `host/`, `play/`, `spectator/` each contain their own inline JS for polling/Pusher/timers, so behavior changes usually mean editing the Blade file rather than a JS module. The `.env` broadcast setting is `BROADCAST_DRIVER=reverb`; the Reverb key/host values are rendered into the player views for the Pusher client.
 
+**Design system.** `public/css/app.css` is one ordered stylesheet: fonts → tokens (`:root`) → base → components → effects → legacy → screens. Legacy token names (`--qb-*`, `--ans-red`…) and legacy font names (`Montserrat`, `Source Sans 3`) are aliases of the new ones and stay until every screen is migrated. Never use `@layer`, `:has()`, `color-mix()` or container queries (old school iPads); a test enforces it. Answer colors are always paired with a shape (`<x-answer-shape>` / `QB.Shapes.svg()`). Effects mode (`data-fx`) and mute live in `localStorage` and are driven by `public/js/qb-ui.js`. The redesign spec and per-phase plans are in `docs/superpowers/` (git-ignored).
+
 ## Repo notes
 
 - Working-tree leftovers such as `app/Models/GamePlayer.php.save*` are editor backups, not part of the app.
