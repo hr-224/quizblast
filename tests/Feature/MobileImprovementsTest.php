@@ -41,16 +41,4 @@ class MobileImprovementsTest extends TestCase
         $this->assertStringContainsString('grid-area: chips', $css);
         $this->assertStringContainsString('grid-area: right', $css);
     }
-
-    /** Join page uses fluid heading and smaller PIN input */
-    public function test_join_page_uses_clamp_heading_and_condensed_footer(): void
-    {
-        $response = $this->get(route('play.join'));
-
-        $response->assertStatus(200);
-        $response->assertSee('clamp(1.8rem,9vw,2.6rem)', false);
-        $response->assertSee('font-size:1.7rem', false);
-        // Footer is condensed to one element — the old two-paragraph wrapper is gone
-        $response->assertDontSee('flex-wrap:wrap', false);
-    }
 }

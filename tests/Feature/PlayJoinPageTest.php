@@ -45,12 +45,11 @@ class PlayJoinPageTest extends TestCase
         $response->assertSee('Create a host account');
     }
 
-    public function test_join_page_has_navbar_override(): void
+    public function test_join_page_uses_the_shared_shell(): void
     {
         $response = $this->get(route('play.join'));
-        // dark glass navbar override is present
-        $response->assertSee('rgba(15,10,30', false);
-        // yellow border-bottom on .navbar is present
-        $response->assertSee('border-bottom: 2px solid #ffd000', false);
+        $response->assertSee('data-fx-toggle', false);
+        $response->assertSee('id="nav-toggle"', false);
+        $response->assertSee('rel="preload" href="/fonts/lexend-latin.woff2"', false);
     }
 }
