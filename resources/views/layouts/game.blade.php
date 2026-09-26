@@ -7,7 +7,7 @@
 <body>
 <div class="game-wrap">
   <div class="game-topbar">
-    <span class="game-topbar-brand">@include('partials.brand-mark')Quiz<span>Blast</span></span>
+    <span class="game-topbar-brand">@include('partials.brand-mark')<span class="brand-word">Quiz<span>Blast</span></span></span>
     @hasSection('topbar-center')
     <div class="topbar-center">@yield('topbar-center')</div>
     @endif

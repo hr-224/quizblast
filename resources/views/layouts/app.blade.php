@@ -8,7 +8,7 @@
 
 <nav class="navbar">
   <div class="navbar-inner">
-    <a href="{{ route('play.join') }}" class="navbar-brand">@include('partials.brand-mark')Quiz<span>Blast</span></a>
+    <a href="{{ route('play.join') }}" class="navbar-brand">@include('partials.brand-mark')<span class="brand-word">Quiz<span>Blast</span></span></a>
     <div class="navbar-nav" id="nav-links">
       <a href="{{ route('library') }}" class="nav-link">Library</a>
       @auth

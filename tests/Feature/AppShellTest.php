@@ -44,6 +44,19 @@ class AppShellTest extends TestCase
         $this->assertStringContainsString('class="topbar-right"', $html);
     }
 
+    public function test_wordmark_is_one_word_in_both_shells_with_scoped_violet_css(): void
+    {
+        foreach ([$this->get(route('play.join')), $this->gameShellResponse()] as $response) {
+            $this->assertStringContainsString('<span class="brand-word">Quiz<span>Blast</span></span>', $response->getContent());
+        }
+
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertStringContainsString('.navbar-brand .brand-word span', $css);
+        $this->assertStringContainsString('.game-topbar-brand .brand-word span', $css);
+        $this->assertStringNotContainsString('.navbar-brand span{', $css);
+        $this->assertStringNotContainsString('.game-topbar-brand span{', $css);
+    }
+
     public function test_both_shells_preload_fonts_and_make_no_third_party_font_requests(): void
     {
         foreach ([$this->get(route('play.join')), $this->gameShellResponse()] as $response) {
