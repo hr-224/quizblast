@@ -4,7 +4,7 @@
 QB.Confetti = (function(){
   let canvas, ctx2d, particles=[], animId=null;
 
-  const COLORS = ['#46178f','#ffd000','#e21b3c','#1368ce','#26890c','#00d2ff','#ff6b2b'];
+  const COLORS = ['#7c5cff','#fbbf24','#ff5d73','#22d3ee','#a3e635','#ffffff'];
 
   function init(){
     if(canvas) return;
