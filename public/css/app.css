@@ -160,6 +160,21 @@ html[data-fx="calm"] .fx-party{display:none!important}
 html[data-fx="party"] .btn-primary{box-shadow:0 0 0 1px rgba(124,92,255,.5),var(--glow-violet)}
 html[data-fx="party"] .card{box-shadow:0 0 0 1px rgba(124,92,255,.08),0 12px 40px rgba(0,0,0,.35)}
 
+/* answer tiles — every color is paired with a shape (never color alone) */
+.ans-shape{display:block;width:1em;height:1em;flex-shrink:0}
+.ans-tile{--tile:var(--ans-coral);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;min-height:72px;padding:1rem;border:0;border-radius:var(--radius-lg);background:var(--tile);color:var(--ink);font-family:var(--font-display);font-weight:700;font-size:1.1rem;line-height:1.2;text-align:center;cursor:pointer;position:relative;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,filter .12s ease,opacity .2s ease}
+.ans-tile.ans-0{--tile:var(--ans-coral)}
+.ans-tile.ans-1{--tile:var(--ans-cyan)}
+.ans-tile.ans-2{--tile:var(--ans-lime)}
+.ans-tile.ans-3{--tile:var(--ans-amber)}
+.ans-tile .ans-shape{font-size:clamp(2.5rem,10vw,4.5rem)}
+.ans-tile:active:not(.is-locked){transform:scale(.97)}
+.ans-tile.is-selected,.ans-tile.is-correct{box-shadow:inset 0 0 0 5px var(--ink),inset 0 0 0 9px var(--white)}
+.ans-tile.is-wrong{opacity:.28;filter:grayscale(.5)}
+.ans-tile.is-eliminated{opacity:.15;pointer-events:none}
+.ans-tile.is-locked{cursor:default}
+.ans-tile-mark{position:absolute;top:.6rem;right:.8rem;font-size:1.5rem;font-weight:900;line-height:1}
+.ans-tile-label{display:block}
 /* === END COMPONENTS === */
 .page-hero{position:relative;overflow:hidden;padding:4rem 0 3rem;text-align:center;background:linear-gradient(180deg,var(--qb-purple) 0%,var(--qb-darker) 100%)}
 .page-hero h1{font-size:clamp(2rem,5vw,3.5rem)}
