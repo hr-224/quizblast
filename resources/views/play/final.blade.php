@@ -140,8 +140,8 @@
 @endsection
 
 @push('scripts')
-<script src="/js/sounds.js?v=9"></script>
-<script src="/js/confetti.js"></script>
+<script src="/js/sounds.js?v={{ filemtime(public_path('js/sounds.js')) }}"></script>
+<script src="/js/confetti.js?v={{ filemtime(public_path('js/confetti.js')) }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   QB.Audio.init();

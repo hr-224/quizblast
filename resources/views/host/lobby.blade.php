@@ -82,7 +82,7 @@ html::-webkit-scrollbar { display: none; }
 @endpush
 
 @push('scripts')
-<script src="/js/sounds.js?v=9"></script>
+<script src="/js/sounds.js?v={{ filemtime(public_path('js/sounds.js')) }}"></script>
 <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
 <script>
 (function(){

@@ -204,7 +204,7 @@ Key tokens (see the `:root` block for the full list):
 ```
 
 Rules that are enforced by tests:
-- Every text/background token pair meets WCAG AA (`DesignTokensTest`).
+- The 16 declared text/background token pairs each meet WCAG AA; `DesignTokensTest` checks them.
 - No `@layer`, `:has()`, `color-mix()` or container queries — old school iPads (iOS < 15.4) cannot parse them.
 - Answer tiles pair each color with a shape (star, hexagon, plus, crescent): `<x-answer-shape :index="n" />` in Blade, `QB.Shapes.svg(n)` in JS.
 

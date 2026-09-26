@@ -26,9 +26,17 @@ class AppShellTest extends TestCase
     public function test_site_shell_has_fx_bootstrap_toggle_and_ui_script(): void
     {
         $html = $this->get(route('play.join'))->assertStatus(200)->getContent();
-        $this->assertStringContainsString("data-fx", $html);
+        $this->assertStringContainsString("setAttribute('data-fx'", $html);
         $this->assertStringContainsString("qb-fx", $html);
         $this->assertStringContainsString('prefers-reduced-motion', $html);
+        // Reduced motion selects calm, otherwise party.
+        $this->assertMatchesRegularExpression("/matches\\)\\?'calm':'party'/", $html);
+        // The bootstrap must run before the stylesheet loads so there is no flash of the wrong mode.
+        $scriptPos = strpos($html, "setAttribute('data-fx'");
+        $cssPos = strpos($html, '/css/app.css');
+        $this->assertNotFalse($scriptPos);
+        $this->assertNotFalse($cssPos);
+        $this->assertLessThan($cssPos, $scriptPos);
         $this->assertStringContainsString('data-fx-toggle', $html);
         $this->assertStringContainsString('/js/qb-ui.js', $html);
         $this->assertStringNotContainsString('data-mute-toggle', $html);
@@ -71,7 +79,9 @@ class AppShellTest extends TestCase
     public function test_fx_bootstrap_survives_blocked_storage(): void
     {
         $html = $this->get(route('play.join'))->getContent();
-        $this->assertMatchesRegularExpression('/<script>\(function\(\)\{try\{.*qb-fx.*\}catch\(e\)\{/s', $html);
+        // Storage is read in its own try/catch so a throw still reaches the reduced-motion default below it.
+        $this->assertMatchesRegularExpression('/<script>\(function\(\)\{var f=null;try\{f=localStorage\.getItem\(\'qb-fx\'\);\}catch\(e\)\{\}try\{.*matchMedia.*\}catch\(e\)\{\}\}\)\(\);<\/script>/s', $html);
+        $this->assertStringNotContainsString("catch(e){document.documentElement.setAttribute('data-fx','calm')", $html);
         $ui = file_get_contents(public_path('js/qb-ui.js'));
         $this->assertStringContainsString('try { return window.localStorage.getItem', $ui);
         $this->assertStringContainsString('try { window.localStorage.setItem', $ui);
@@ -95,5 +105,78 @@ class AppShellTest extends TestCase
         foreach (['id="nav-toggle"', 'id="nav-dropdown"', 'class="hamburger-btn"', 'id="nav-links"', 'dropdown.hidden'] as $needle) {
             $this->assertStringContainsString($needle, $html, $needle);
         }
+    }
+
+    /** sounds.js is cached for 30 days in production, so every loader must carry a content-based version. */
+    public function test_no_view_pins_sounds_js_to_a_literal_version(): void
+    {
+        $offenders = [];
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(resource_path('views'))) as $file) {
+            if (! $file->isFile() || ! str_ends_with($file->getFilename(), '.blade.php')) {
+                continue;
+            }
+            // play/game.blade.php is rewritten in Phase 2; it is excluded from this Phase 1 check.
+            if (str_ends_with(str_replace('\\', '/', $file->getPathname()), 'play/game.blade.php')) {
+                continue;
+            }
+            $src = file_get_contents($file->getPathname());
+            if (preg_match('#sounds\.js\?v=\d+#', $src)) {
+                $offenders[] = $file->getPathname();
+            }
+            if (preg_match('#/js/(sounds|confetti)\.js["\']#', $src)) {
+                $offenders[] = $file->getPathname() . ' (unversioned)';
+            }
+        }
+        $this->assertSame([], $offenders);
+    }
+
+    public function test_calm_mode_exempts_emoji_overlays_from_animation_shortcut(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertStringContainsString('html[data-fx="calm"] #emoji-overlay > *', $css);
+        $this->assertStringContainsString('html[data-fx="calm"] #spec-emoji-overlay > *', $css);
+        $this->assertMatchesRegularExpression('/#spec-emoji-overlay > \*\{animation:none!important\}/', $css);
+    }
+
+    public function test_sounds_js_restarts_lobby_music_on_unmute(): void
+    {
+        $src = file_get_contents(public_path('js/sounds.js'));
+        $this->assertStringContainsString('wantBg', $src);
+        $this->assertMatchesRegularExpression('/function playLobbyMusic\(\)\{\s*wantBg=true;/', $src);
+        $this->assertMatchesRegularExpression('/setMuted:\s*function\(m\)\{[^}]*if\(m\) stopBg\(\);[^}]*wantBg[^}]*playLobbyMusic\(\)/', $src);
+    }
+
+    public function test_toggles_use_fixed_names_with_aria_pressed_carrying_state(): void
+    {
+        $html = $this->gameShellResponse()->getContent();
+        $this->assertStringContainsString('data-fx-toggle aria-pressed="true" aria-label="Party effects"', $html);
+        $this->assertStringContainsString('data-mute-toggle aria-pressed="true" aria-label="Sound"', $html);
+
+        $ui = file_get_contents(public_path('js/qb-ui.js'));
+        $this->assertStringNotContainsString("setAttribute('aria-label'", $ui);
+    }
+
+    public function test_shell_logout_forms_and_signup_link_have_no_inline_styles(): void
+    {
+        $layout = file_get_contents(resource_path('views/layouts/app.blade.php'));
+        $this->assertStringNotContainsString('style="', $layout);
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertStringContainsString('.inline-form{display:inline}', $css);
+        $this->assertStringContainsString('.nav-dropdown-link-accent', $css);
+        $this->assertStringContainsString('nav-dropdown-link-accent', $layout);
+    }
+
+    public function test_font_licence_text_is_shipped(): void
+    {
+        $ofl = file_get_contents(public_path('fonts/OFL.txt'));
+        $this->assertStringContainsString('SIL OPEN FONT LICENSE Version 1.1', $ofl);
+        $this->assertStringContainsString('Lexend Project Authors', $ofl);
+        $this->assertStringContainsString('Braille Institute of America', $ofl);
+    }
+
+    public function test_clamp_font_size_has_a_plain_fallback(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertStringContainsString('.ans-tile .ans-shape{font-size:3rem;font-size:clamp(2.5rem,10vw,4.5rem)}', $css);
     }
 }

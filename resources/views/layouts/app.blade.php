@@ -14,7 +14,7 @@
       @auth
         <a href="{{ route('dashboard') }}" class="nav-link">Dashboard</a>
         <a href="{{ route('quizzes.create') }}" class="nav-link">New Quiz</a>
-        <form method="POST" action="{{ route('logout') }}" style="display:inline">
+        <form method="POST" action="{{ route('logout') }}" class="inline-form">
           @csrf
           <button type="submit" class="btn btn-outline btn-sm">Log out</button>
         </form>
@@ -22,7 +22,7 @@
         <a href="{{ route('play.join') }}" class="nav-link">Join Game</a>
         @if(session('player_account_id'))
           <a href="{{ route('player.stats') }}" class="nav-link">My Stats</a>
-          <form method="POST" action="{{ route('player.logout') }}" style="display:inline">
+          <form method="POST" action="{{ route('player.logout') }}" class="inline-form">
             @csrf
             <button type="submit" class="btn btn-outline btn-sm">Log out</button>
           </form>
@@ -54,7 +54,7 @@
         </form>
       @else
         <a href="{{ route('login') }}" class="nav-dropdown-link">Sign In</a>
-        <a href="{{ route('register') }}" class="nav-dropdown-link" style="color:var(--violet-text)">Sign Up</a>
+        <a href="{{ route('register') }}" class="nav-dropdown-link nav-dropdown-link-accent">Sign Up</a>
       @endif
     @endauth
   </div>

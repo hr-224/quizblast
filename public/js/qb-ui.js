@@ -20,7 +20,6 @@
     var btns = document.querySelectorAll('[data-fx-toggle]');
     for (var i = 0; i < btns.length; i++) {
       btns[i].setAttribute('aria-pressed', party ? 'true' : 'false');
-      btns[i].setAttribute('aria-label', label);
       btns[i].setAttribute('title', label);
       btns[i].textContent = party ? '✨' : '🌙';
     }
@@ -40,11 +39,10 @@
 
   function renderMute() {
     var m = muted();
-    var label = m ? 'Sound is muted. Unmute.' : 'Mute sound';
+    var label = m ? 'Sound is muted. Unmute.' : 'Sound is on. Mute.';
     var btns = document.querySelectorAll('[data-mute-toggle]');
     for (var i = 0; i < btns.length; i++) {
-      btns[i].setAttribute('aria-pressed', m ? 'true' : 'false');
-      btns[i].setAttribute('aria-label', label);
+      btns[i].setAttribute('aria-pressed', m ? 'false' : 'true'); // pressed = sound is on
       btns[i].setAttribute('title', label);
       btns[i].textContent = m ? '🔇' : '🔊';
     }
