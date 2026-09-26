@@ -367,7 +367,18 @@ class PlayerController extends Controller
         $player = GamePlayer::find($playerId);
         if (!$player || !$player->hasPowerUp($request->type)) return response()->json(['error' => 'Power-up not available'], 400);
         broadcast(new PowerUpUsed($pin, $request->type, $player->nickname, $request->question_id));
-        return response()->json(['ok' => true, 'type' => $request->type]);
+
+        $response = ['ok' => true, 'type' => $request->type];
+
+        if ($request->type === 'fifty_fifty') {
+            $question = \App\Models\Question::with('answers')->find($request->question_id);
+            if ($question) {
+                $wrong = $question->answers->where('is_correct', false)->pluck('id')->shuffle()->take(2)->values();
+                $response['eliminate'] = $wrong;
+            }
+        }
+
+        return response()->json($response);
     }
 
     public function spy(Request $request, string $pin)

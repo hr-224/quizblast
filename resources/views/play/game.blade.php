@@ -201,10 +201,6 @@
     activePowerUp = type;
     usedPowerUps.add(type);
     updatePowerUpButtons();
-    if (type === 'fifty_fifty') {
-      const blocks = [...document.querySelectorAll('#answer-grid > div')];
-      blocks.sort(() => .5 - Math.random()).slice(0,2).forEach(b => { b.style.opacity='.2'; b.style.pointerEvents='none'; });
-    }
     if (type === 'spy') {
       fetch('/play/' + pin + '/spy?question_id=' + currentQuestionId, { headers: {'X-CSRF-TOKEN': csrfToken} })
         .then(r => r.json())
@@ -218,7 +214,19 @@
           setTimeout(() => toast.remove(), 3000);
         }).catch(() => {});
     }
-    fetch('/play/' + pin + '/powerup', { method:'POST', headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrfToken}, body:JSON.stringify({type, question_id:currentQuestionId}) });
+    fetch('/play/' + pin + '/powerup', { method:'POST', headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrfToken}, body:JSON.stringify({type, question_id:currentQuestionId}) })
+      .then(r => r.json())
+      .then(data => {
+        if (type === 'fifty_fifty' && data.eliminate && data.eliminate.length) {
+          const eliminateSet = new Set(data.eliminate.map(Number));
+          document.querySelectorAll('#answer-grid > div[data-answer-id]').forEach(b => {
+            if (eliminateSet.has(Number(b.dataset.answerId))) {
+              b.style.opacity = '.2';
+              b.style.pointerEvents = 'none';
+            }
+          });
+        }
+      }).catch(() => {});
   };
 
   let currentAnswerIds = [];
