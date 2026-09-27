@@ -67,7 +67,7 @@ class HostLobbyRedesignTest extends TestCase
     public function test_pusher_is_optional_and_polling_uses_the_players_endpoint(): void
     {
         $src = $this->src();
-        $this->assertStringContainsString('window.Pusher', $src);
+        $this->assertStringContainsString('QB.loadPusher', $src);
         $this->assertMatchesRegularExpression('/try\s*\{[^}]*new Pusher/s', $src);
         $this->assertStringContainsString("'/api/game/' + pin + '/players'", $src);
         // the poll interval is registered after (outside) the Pusher try/catch, so it runs even when Pusher is missing

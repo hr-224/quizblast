@@ -35,7 +35,7 @@
 @endsection
 
 @push('scripts')
-<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+<script src="/js/qb-pusher.js?v={{ filemtime(public_path('js/qb-pusher.js')) }}"></script>
 <script>
 (function () {
   const pin       = '{{ $game->pin }}';
@@ -102,27 +102,30 @@
     tickerTimer = setTimeout(hideTicker, 3000);
   }
 
-  // Live updates over Reverb. js.pusher.com may be blocked on school networks — polling below covers that.
-  try {
-    if (window.Pusher) {
-      pusher = new Pusher(appKey, {
-        wsHost: wsHost, wsPort: 443, wssPort: 443,
-        forceTLS: true, enabledTransports: ['ws', 'wss'],
-        disableStats: true, cluster: 'mt1',
-      });
-      pusher.connection.bind('connected', () => setLive(true, 'Waiting for host…'));
-      pusher.connection.bind('disconnected', () => setLive(false, 'Reconnecting…'));
+  // Live updates over Reverb. js.pusher.com may be blocked (or just slow) on school
+  // networks — loaded asynchronously so it never holds up the polling fallback below.
+  QB.loadPusher(Pusher => {
+    try {
+      if (Pusher) {
+        pusher = new Pusher(appKey, {
+          wsHost: wsHost, wsPort: 443, wssPort: 443,
+          forceTLS: true, enabledTransports: ['ws', 'wss'],
+          disableStats: true, cluster: 'mt1',
+        });
+        pusher.connection.bind('connected', () => setLive(true, 'Waiting for host…'));
+        pusher.connection.bind('disconnected', () => setLive(false, 'Reconnecting…'));
 
-      const channel = pusher.subscribe('game.' + pin);
-      channel.bind('player-kicked', d => { if (d.player_id == myId) go('/play?kicked=1'); });
-      channel.bind('game-state-changed', d => routeByStatus(d.status));
-      channel.bind('player-joined', d => { setCount(d.count); addChip(d.nickname); showJoinTicker(d.nickname); });
-      channel.bind('player-left', d => { setCount(d.count); renderChips(d.players); hideTicker(); });
+        const channel = pusher.subscribe('game.' + pin);
+        channel.bind('player-kicked', d => { if (d.player_id == myId) go('/play?kicked=1'); });
+        channel.bind('game-state-changed', d => routeByStatus(d.status));
+        channel.bind('player-joined', d => { setCount(d.count); addChip(d.nickname); showJoinTicker(d.nickname); });
+        channel.bind('player-left', d => { setCount(d.count); renderChips(d.players); hideTicker(); });
+      }
+    } catch (e) {
+      pusher = null;
     }
-  } catch (e) {
-    pusher = null;
-  }
-  if (!pusher) setLive(false, 'Waiting for host…');
+    if (!pusher) setLive(false, 'Waiting for host…');
+  });
 
   // Polling: initial count, and the fallback whenever the socket is not connected.
   async function poll() {

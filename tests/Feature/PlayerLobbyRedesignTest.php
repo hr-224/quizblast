@@ -48,7 +48,7 @@ class PlayerLobbyRedesignTest extends TestCase
     public function test_lobby_script_works_without_pusher(): void
     {
         $src = file_get_contents(resource_path('views/play/lobby.blade.php'));
-        $this->assertStringContainsString('window.Pusher', $src);
+        $this->assertStringContainsString('QB.loadPusher', $src);
         $this->assertMatchesRegularExpression('/try\s*\{[^}]*new Pusher/s', $src);
         $this->assertStringContainsString('/api/game/', $src);
         $this->assertStringContainsString("getElementById('leave-btn').addEventListener('click'", $src);

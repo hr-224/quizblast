@@ -58,7 +58,7 @@
 
 @push('scripts')
 <script src="/js/sounds.js?v={{ filemtime(public_path('js/sounds.js')) }}"></script>
-<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+<script src="/js/qb-pusher.js?v={{ filemtime(public_path('js/qb-pusher.js')) }}"></script>
 <script>
 (function () {
   const pin       = '{{ $game->pin }}';
@@ -169,24 +169,27 @@
   initial.forEach(p => addChip(p, true));
   sync();
 
-  // Live updates over Reverb. js.pusher.com may be blocked on school networks — polling below covers that.
-  try {
-    if (window.Pusher) {
-      pusher = new Pusher(appKey, {
-        wsHost: wsHost, wsPort: 443, wssPort: 443,
-        forceTLS: true, enabledTransports: ['ws', 'wss'],
-        disableStats: true, cluster: 'mt1',
-      });
-      pusher.connection.bind('connected', () => dotEl.classList.add('is-live'));
-      pusher.connection.bind('disconnected', () => dotEl.classList.remove('is-live'));
-      const channel = pusher.subscribe('game.' + pin);
-      channel.bind('player-joined', d => addChip({ id: d.id, nickname: d.nickname }, false));
-      channel.bind('player-left', d => removeMissing(d.players));
-      channel.bind('player-kicked', d => removeChip(d.player_id));
+  // Live updates over Reverb. js.pusher.com may be blocked (or just slow) on school
+  // networks — loaded asynchronously so it never holds up the polling fallback below.
+  QB.loadPusher(Pusher => {
+    try {
+      if (Pusher) {
+        pusher = new Pusher(appKey, {
+          wsHost: wsHost, wsPort: 443, wssPort: 443,
+          forceTLS: true, enabledTransports: ['ws', 'wss'],
+          disableStats: true, cluster: 'mt1',
+        });
+        pusher.connection.bind('connected', () => dotEl.classList.add('is-live'));
+        pusher.connection.bind('disconnected', () => dotEl.classList.remove('is-live'));
+        const channel = pusher.subscribe('game.' + pin);
+        channel.bind('player-joined', d => addChip({ id: d.id, nickname: d.nickname }, false));
+        channel.bind('player-left', d => removeMissing(d.players));
+        channel.bind('player-kicked', d => removeChip(d.player_id));
+      }
+    } catch (e) {
+      pusher = null;
     }
-  } catch (e) {
-    pusher = null;
-  }
+  });
 
   // Polling fallback whenever the socket is not connected (also the only source without Pusher).
   setInterval(async () => {

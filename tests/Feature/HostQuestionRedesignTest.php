@@ -101,7 +101,7 @@ class HostQuestionRedesignTest extends TestCase
     public function test_pusher_is_optional_and_the_timer_does_not_depend_on_it(): void
     {
         $js = $this->script();
-        $this->assertStringContainsString('window.Pusher', $js);
+        $this->assertStringContainsString('QB.loadPusher', $js);
         $this->assertMatchesRegularExpression('/try\s*\{[^}]*new Pusher/s', $js);
         $this->assertLessThan(strpos($js, 'new Pusher'), strpos($js, 'setInterval'), 'timer must be started before Pusher is touched');
     }

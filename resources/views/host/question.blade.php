@@ -181,7 +181,7 @@
 
 @push('scripts')
 <script src="/js/sounds.js?v={{ filemtime(public_path('js/sounds.js')) }}"></script>
-<script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+<script src="/js/qb-pusher.js?v={{ filemtime(public_path('js/qb-pusher.js')) }}"></script>
 <script>
 (function () {
   const pin          = '{{ $game->pin }}';
@@ -271,24 +271,27 @@
     }, 1000);
   }
 
-  // Live events over Reverb. If js.pusher.com is blocked the timer, Reveal and Skip still work;
-  // only the live "answered" counter and the all-answered auto-reveal need the socket.
-  try {
-    if (window.Pusher) {
-      const pusher  = new Pusher(appKey, { wsHost, wsPort: 443, wssPort: 443, forceTLS: true, enabledTransports: ['ws', 'wss'], disableStats: true, cluster: 'mt1' });
-      const channel = pusher.subscribe('game.' + pin);
-      channel.bind('answer-count-updated', d => {
-        if (d.question_id !== questionId) return;
-        document.getElementById('answered-count').textContent = d.total_answered;
-        if (totalPlayers > 0 && d.total_answered >= totalPlayers) submitReveal();
-      });
-      channel.bind('emoji-reacted', d => showFloatingEmoji(d.emoji));
-      channel.bind('power-up-used', d => {
-        const labels = { double_points: '⚡ Double Points', fifty_fifty: '🎯 50/50', extra_time: '⏱ +10s', spy: '🕵 Spy' };
-        showToast(`${d.nickname} used ${labels[d.type] || d.type}`);
-      });
-    }
-  } catch (e) {}
+  // Live events over Reverb, loaded asynchronously so a slow/blocked CDN can never hold
+  // up the timer, Reveal or Skip — only the live "answered" counter and the all-answered
+  // auto-reveal need the socket.
+  QB.loadPusher(Pusher => {
+    try {
+      if (Pusher) {
+        const pusher  = new Pusher(appKey, { wsHost, wsPort: 443, wssPort: 443, forceTLS: true, enabledTransports: ['ws', 'wss'], disableStats: true, cluster: 'mt1' });
+        const channel = pusher.subscribe('game.' + pin);
+        channel.bind('answer-count-updated', d => {
+          if (d.question_id !== questionId) return;
+          document.getElementById('answered-count').textContent = d.total_answered;
+          if (totalPlayers > 0 && d.total_answered >= totalPlayers) submitReveal();
+        });
+        channel.bind('emoji-reacted', d => showFloatingEmoji(d.emoji));
+        channel.bind('power-up-used', d => {
+          const labels = { double_points: '⚡ Double Points', fifty_fifty: '🎯 50/50', extra_time: '⏱ +10s', spy: '🕵 Spy' };
+          showToast(`${d.nickname} used ${labels[d.type] || d.type}`);
+        });
+      }
+    } catch (e) {}
+  });
 
   // Standings pop-up (non-last question, after the reveal)
   const standings = document.getElementById('standings');
