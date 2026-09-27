@@ -42,7 +42,7 @@ class Game extends Model
         }
         $question = $this->currentQuestion();
         if (!$question) return 0;
-        $elapsed = now()->diffInSeconds($this->question_started_at, false);
+        $elapsed = $this->question_started_at->diffInSeconds(now(), false);
         return max(0, $question->time_limit - $elapsed);
     }
 }
