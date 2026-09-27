@@ -101,6 +101,29 @@ class HostLobbyRedesignTest extends TestCase
         $this->assertStringContainsString('r.top - h - 8', $src);
     }
 
+    /** Final-review Group D: a failed kick must not remove the chip, and must tell the host. */
+    public function test_kick_checks_the_response_before_removing_the_chip(): void
+    {
+        $src = $this->src();
+        preg_match('/<script>\s*\(function.*?<\/script>/s', $src, $m);
+        $js = $m[0] ?? '';
+        $this->assertNotSame('', $js, 'inline script not found');
+        $this->assertStringContainsString('res.ok', $js);
+        $this->assertStringContainsString('function showToast(', $js);
+        $this->assertMatchesRegularExpression('/if \(!res\.ok\)/', $js);
+        // removeChip must not be called unconditionally right after the fetch any more.
+        $this->assertDoesNotMatchRegularExpression('/await fetch\([^;]*;\s*removeChip\(target\.id\);/s', $js);
+    }
+
+    /** Final-review Group F: the chip grid and its chips are exposed to assistive tech as a list. */
+    public function test_player_grid_and_chips_expose_list_semantics(): void
+    {
+        $html = $this->html();
+        $this->assertMatchesRegularExpression('/id="player-grid"[^>]*role="list"/', $html);
+        $src = $this->src();
+        $this->assertStringContainsString("chip.setAttribute('role', 'listitem');", $src);
+    }
+
     public function test_every_id_the_script_reads_exists_in_the_markup(): void
     {
         $this->assertScriptIdsExist('host/lobby.blade.php');

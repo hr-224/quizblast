@@ -46,7 +46,7 @@
     <p class="host-meta">Spectate: <a href="{{ route('spectate.join', $game->pin) }}" target="_blank" rel="noopener">/spectate/{{ $game->pin }}</a></p>
   @endif
 
-  <div id="player-grid" class="host-chips" aria-label="Players"></div>
+  <div id="player-grid" class="host-chips" role="list" aria-label="Players"></div>
 </div>
 
 <div id="kick-confirm" class="kick-confirm hidden" role="dialog" aria-label="Remove player">
@@ -114,6 +114,7 @@
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'host-chip';
+    chip.setAttribute('role', 'listitem');
     chip.textContent = p.nickname;
     chip.dataset.id = id;
     chip.addEventListener('click', e => openKick(chip, p, e));
@@ -138,17 +139,29 @@
     Array.from(known).forEach(id => { if (!ids.has(id)) removeChip(id); });
   }
 
+  function showToast(text) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.setAttribute('role', 'status');
+    t.textContent = text;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  }
+
   document.getElementById('kick-yes').addEventListener('click', async () => {
     if (!kickTarget) return;
     const target = kickTarget;
     closeKick();
     try {
-      await fetch('/play/' + pin + '/kick/' + target.id, {
+      const res = await fetch('/play/' + pin + '/kick/' + target.id, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': csrfToken, 'Content-Type': 'application/json' },
       });
+      if (!res.ok) { showToast("Couldn't remove " + target.nickname + ' — try again.'); return; }
       removeChip(target.id);
-    } catch (e) {}
+    } catch (e) {
+      showToast("Couldn't remove " + target.nickname + ' — try again.');
+    }
   });
   document.getElementById('kick-no').addEventListener('click', closeKick);
   document.addEventListener('click', e => { if (!confirmBox.contains(e.target)) closeKick(); });
