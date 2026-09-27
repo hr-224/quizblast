@@ -19,7 +19,7 @@
     <div id="suspense-medal" class="suspense-medal"></div>
     <div id="suspense-name" class="suspense-name"></div>
     <div id="suspense-score" class="suspense-score"></div>
-    @if(isset($rank) && $rank <= 3)
+    @if($rank !== null && $rank <= 3)
       <div id="suspense-you" class="suspense-you hidden">That's you! 🎉</div>
     @endif
   </div>
@@ -30,11 +30,11 @@
 
   @if($player)
     <div class="result-hero">
-      <div class="result-medal {{ $rank <= 3 ? 'is-podium' : '' }}">
+      <div class="result-medal {{ $rank !== null && $rank <= 3 ? 'is-podium' : '' }}">
         @if($rank == 1) 🥇 @elseif($rank == 2) 🥈 @elseif($rank == 3) 🥉 @else 🎮 @endif
       </div>
       <h1 class="result-name">{{ $player->nickname }}</h1>
-      <p class="result-rank">#{{ $rank }} of {{ $players->count() }} players</p>
+      <p class="result-rank">{{ $rank !== null ? '#' . $rank . ' of ' . $players->count() . ' players' : 'Spectating' }}</p>
       <div class="result-stats">
         <div class="card result-stat">
           <div class="result-stat-label">Score</div>
