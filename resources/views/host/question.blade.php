@@ -152,7 +152,7 @@
 
   // Confirmation dialogs (Skip)
   document.querySelectorAll('form[data-confirm]').forEach(f => {
-    f.addEventListener('submit', e => { if (!window.confirm(f.dataset.confirm)) e.preventDefault(); });
+    f.addEventListener('submit', e => { if (!window.confirm(f.dataset.confirm)) e.preventDefault(); else revealed = true; });
   });
 
   // Reveal exactly once, whether triggered by the timer, by everyone answering, or by the host.
@@ -162,6 +162,10 @@
     const f = document.getElementById('reveal-form');
     if (f) f.submit();
   }
+
+  // A host-submitted Reveal locks the flag so the timer / all-answered paths cannot POST it again.
+  const revealForm = document.getElementById('reveal-form');
+  if (revealForm) revealForm.addEventListener('submit', () => { revealed = true; });
 
   function showToast(text) {
     const t = document.createElement('div');
@@ -189,7 +193,7 @@
     const tick = setInterval(() => {
       timeLeft = Math.max(0, timeLeft - 1);
       const ceil = Math.ceil(timeLeft);
-      const pct  = timeLeft / timeLimit;
+      const pct  = Math.min(1, timeLeft / timeLimit);
       timerNum.textContent = ceil;
       timerFill.style.strokeDashoffset = String(Math.round(CIRC * (1 - pct)));
       timerRing.classList.toggle('is-urgent', pct <= 0.25);

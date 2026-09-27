@@ -69,5 +69,11 @@ class DesignComponentsTest extends TestCase
         }
         $this->assertStringContainsString('.response-bar{width:100%;border-radius:6px 6px 0 0;background:var(--ans-coral)}', $css);
         $this->assertStringContainsString('.response-bar.ans-3{background:var(--ans-amber)}', $css);
+        $this->assertStringContainsString('.response-bar.ans-1{', $css);
+        $this->assertStringContainsString('.response-bar.ans-2{', $css);
+        $this->assertStringContainsString(
+            'response-bar ans-{{ $idx % 4 }}',
+            file_get_contents(resource_path('views/host/question.blade.php'))
+        );
     }
 }

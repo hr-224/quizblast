@@ -128,6 +128,26 @@ class HostQuestionRedesignTest extends TestCase
         $this->assertStringContainsString('window.confirm', $js);
     }
 
+    public function test_timer_ring_fraction_is_clamped_to_one(): void
+    {
+        $this->assertStringContainsString('Math.min(1, timeLeft / timeLimit)', $this->script());
+    }
+
+    public function test_manual_reveal_and_confirmed_skip_lock_the_reveal_flag(): void
+    {
+        $js = $this->script();
+        // (a) a host-submitted reveal form flips the flag (and does not call submitReveal, which would no-op)
+        $this->assertMatchesRegularExpression(
+            "/getElementById\('reveal-form'\);\s*if \(revealForm\) revealForm\.addEventListener\('submit', \(\) => \{ revealed = true; \}\);/",
+            $js
+        );
+        // (b) a confirmed skip flips the flag so a pending tick cannot reveal instead
+        $this->assertMatchesRegularExpression(
+            "/window\.confirm\(f\.dataset\.confirm\)\) e\.preventDefault\(\);\s*else revealed = true;/",
+            $js
+        );
+    }
+
     public function test_every_id_the_script_reads_exists_in_the_markup(): void
     {
         $this->assertScriptIdsExist('host/question.blade.php');
