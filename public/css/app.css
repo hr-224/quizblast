@@ -614,7 +614,7 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .host-tile .ans-shape{font-size:2.4rem;font-size:clamp(2rem,3.4vw,3.2rem)}
 .host-tile .ans-tile-label{flex:1;min-width:0;overflow-wrap:anywhere;word-break:break-word}
 .host-tile .ans-tile-mark{position:static;flex-shrink:0;font-size:1.8rem}
-.host-tile.is-wrong{opacity:.55}
+.host-tile.is-wrong{opacity:.8}
 
 .response-chart{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:1rem 1.25rem}
 .response-chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;font-size:.9rem;font-weight:700;color:var(--text-muted)}

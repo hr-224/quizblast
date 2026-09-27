@@ -174,6 +174,20 @@ class HostQuestionRedesignTest extends TestCase
         $this->assertScriptIdsExist('host/question.blade.php');
     }
 
+    /**
+     * Final-review Group E: .host-tile.is-wrong at .55 opacity fails ~4.5:1 contrast against the
+     * dark ink text on the projector (worst case: the coral tile only clears ~2.67:1). Bump it to
+     * .8 — the lowest value that clears 4.5:1 for every answer color — without touching the
+     * unrelated Phase 1/2 .ans-tile.is-wrong / .review-answers .ans-tile.is-wrong rules.
+     */
+    public function test_host_wrong_tile_opacity_meets_contrast_and_leaves_other_rules_alone(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertStringContainsString('.host-tile.is-wrong{opacity:.8}', $css);
+        $this->assertStringContainsString('.ans-tile.is-wrong{opacity:.28;filter:grayscale(.5)}', $css);
+        $this->assertStringContainsString('.review-answers .ans-tile.is-wrong{opacity:.55}', $css);
+    }
+
     public function test_question_css_exists(): void
     {
         $css = file_get_contents(public_path('css/app.css'));
