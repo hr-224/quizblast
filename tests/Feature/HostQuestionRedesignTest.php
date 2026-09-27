@@ -118,7 +118,7 @@ class HostQuestionRedesignTest extends TestCase
     {
         $js = $this->script();
         $this->assertStringContainsString('function submitReveal()', $js);
-        $this->assertStringContainsString('if (revealed) return;', $js);
+        $this->assertStringContainsString('if (revealed || submitting) return;', $js);
         $this->assertSame(0, substr_count($js, "getElementById('reveal-form').submit()"));
     }
 
@@ -147,6 +147,26 @@ class HostQuestionRedesignTest extends TestCase
             "/window\.confirm\(f\.dataset\.confirm\)\) e\.preventDefault\(\);\s*else revealed = true;/",
             $js
         );
+    }
+
+    /** Final-review Group A: double-submit guard on every host form. */
+    public function test_forms_are_locked_against_double_submission(): void
+    {
+        $js = $this->script();
+        $this->assertMatchesRegularExpression('/let\s+submitting\s+=\s+false;/', $js);
+        $this->assertStringContainsString('function lockAndSubmit(form)', $js);
+        $this->assertStringContainsString('if (submitting) return false;', $js);
+        $this->assertStringNotContainsString('form.submit()', $js, 'lockAndSubmit must not submit the form itself');
+
+        // Every host form gates its submit on lockAndSubmit.
+        $this->assertMatchesRegularExpression("/revealForm\.addEventListener\('submit', e => \{ if \(!lockAndSubmit\(revealForm\)\) e\.preventDefault\(\); \}\);/", $js);
+        $this->assertMatchesRegularExpression("/nextForm\.addEventListener\('submit', e => \{ if \(!lockAndSubmit\(nextForm\)\) e\.preventDefault\(\); \}\);/", $js);
+        $this->assertMatchesRegularExpression("/standingsForm\.addEventListener\('submit', e => \{ if \(!lockAndSubmit\(standingsForm\)\) e\.preventDefault\(\); \}\);/", $js);
+        // Skip form: lock is only checked once the confirm dialog has been accepted (defaultPrevented stays false).
+        $this->assertMatchesRegularExpression("/if \(!e\.defaultPrevented\) \{ if \(!lockAndSubmit\(f\)\) e\.preventDefault\(\); \}/", $js);
+
+        // submitReveal() itself must respect the flag and route through lockAndSubmit rather than a bare submit.
+        $this->assertMatchesRegularExpression('/if \(f && lockAndSubmit\(f\)\) f\.submit\(\);/', $js);
     }
 
     public function test_every_id_the_script_reads_exists_in_the_markup(): void

@@ -190,25 +190,43 @@
   let   timeLeft     = {{ $remaining }};
   let   revealed     = {{ $reviewing ? 'true' : 'false' }};
   let   lastBeep     = Math.ceil(timeLeft);
+  let   submitting   = false;
+
+  // Guards every host form against a double-click (or a race between a confirmed Skip and the
+  // timer's auto-reveal) locking, not submitting: the caller lets the native submit proceed.
+  function lockAndSubmit(form) {
+    if (submitting) return false;
+    submitting = true;
+    const btn = form.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
+    return true;
+  }
 
   document.addEventListener('click', () => { QB.Audio.init(); QB.Audio.resume(); }, { once: true });
 
-  // Confirmation dialogs (Skip)
+  // Confirmation dialogs (Skip). The lock is only checked once the host has confirmed
+  // (e.defaultPrevented stays false), so declining the dialog never disables the button.
   document.querySelectorAll('form[data-confirm]').forEach(f => {
     f.addEventListener('submit', e => { if (!window.confirm(f.dataset.confirm)) e.preventDefault(); else revealed = true; });
+    f.addEventListener('submit', e => { if (!e.defaultPrevented) { if (!lockAndSubmit(f)) e.preventDefault(); } });
   });
 
   // Reveal exactly once, whether triggered by the timer, by everyone answering, or by the host.
   function submitReveal() {
-    if (revealed) return;
+    if (revealed || submitting) return;
     revealed = true;
     const f = document.getElementById('reveal-form');
-    if (f) f.submit();
+    if (f && lockAndSubmit(f)) f.submit();
   }
 
   // A host-submitted Reveal locks the flag so the timer / all-answered paths cannot POST it again.
   const revealForm = document.getElementById('reveal-form');
   if (revealForm) revealForm.addEventListener('submit', () => { revealed = true; });
+  if (revealForm) revealForm.addEventListener('submit', e => { if (!lockAndSubmit(revealForm)) e.preventDefault(); });
+
+  // The last-question "Results" form and the standings popup's "Next question" form.
+  const nextForm = document.getElementById('next-form');
+  if (nextForm) nextForm.addEventListener('submit', e => { if (!lockAndSubmit(nextForm)) e.preventDefault(); });
 
   function showToast(text) {
     const t = document.createElement('div');
@@ -277,6 +295,8 @@
     const closeStandings = () => { standings.classList.add('hidden'); nextBtn.focus(); };
     nextBtn.addEventListener('click', openStandings);
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !standings.classList.contains('hidden')) closeStandings(); });
+    const standingsForm = document.getElementById('standings-next').closest('form');
+    if (standingsForm) standingsForm.addEventListener('submit', e => { if (!lockAndSubmit(standingsForm)) e.preventDefault(); });
   }
 
   // Auto-advance to the final results 5s after the last question is revealed
