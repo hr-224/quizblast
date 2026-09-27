@@ -74,6 +74,22 @@ class DashboardRedesignTest extends TestCase
         $this->assertMatchesRegularExpression('/<a[^>]*href="[^"]*page=2[^"]*"[^>]*>\s*2\s*<\/a>/', $html);
     }
 
+    public function test_quiz_card_head_does_not_wrap_the_public_badge_under_the_title(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertMatchesRegularExpression('/\.quiz-card-head\{[^}]*flex-wrap:nowrap[^}]*\}/', $css);
+        $this->assertMatchesRegularExpression('/\.quiz-card-head\{[^}]*gap:\.5rem[^}]*\}/', $css);
+        $this->assertSame(1, substr_count($css, '.quiz-card-head{'), 'the selector must be edited in place, not duplicated');
+    }
+
+    public function test_delete_quiz_button_has_accessible_name(): void
+    {
+        $host = User::create(['name' => 'Host', 'email' => 'dash5@test.com', 'password' => 'secret-pass']);
+        Quiz::create(['user_id' => $host->id, 'title' => 'To delete']);
+        $html = $this->actingAs($host)->get(route('dashboard'))->getContent();
+        $this->assertStringContainsString('aria-label="Delete quiz"', $html);
+    }
+
     public function test_delete_quiz_button_uses_data_confirm(): void
     {
         $host = User::create(['name' => 'Host', 'email' => 'dash3@test.com', 'password' => 'secret-pass']);

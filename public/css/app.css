@@ -730,8 +730,13 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .player-answer-pill.is-correct{background:rgba(74,222,128,.14);border-color:rgba(74,222,128,.35);color:var(--ok)}
 .justify-center{justify-content:center}
 .page-head-tight{margin:0}
-.quiz-card-head{margin:0 0 .6rem}
+.quiz-card-head{margin:0 0 .6rem;flex-wrap:nowrap;gap:.5rem}
 .card-flush{padding:0;overflow:hidden}
 .q-preview-row-card{padding:.85rem 1.25rem}
+.quiz-card-link .quiz-card{height:100%}
+.ans-fg-0{color:var(--ans-coral)}
+.ans-fg-1{color:var(--ans-cyan)}
+.ans-fg-2{color:var(--ans-lime)}
+.ans-fg-3{color:var(--ans-amber)}
 
 /* === END EDITOR & LIBRARY === */

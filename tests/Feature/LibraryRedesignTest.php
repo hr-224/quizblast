@@ -55,6 +55,12 @@ class LibraryRedesignTest extends TestCase
         }
     }
 
+    public function test_quiz_card_link_stretches_card_to_equal_height(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertStringContainsString('.quiz-card-link .quiz-card{height:100%}', $css);
+    }
+
     public function test_pagination_css_override_exists(): void
     {
         $css = file_get_contents(public_path('css/app.css'));

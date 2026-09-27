@@ -38,7 +38,7 @@
             <a href="{{ route('quizzes.edit', $quiz) }}" class="btn btn-outline btn-sm">Edit</a>
             <form method="POST" action="{{ route('quizzes.destroy', $quiz) }}" class="inline-form" data-confirm="Delete this quiz? This cannot be undone.">
               @csrf @method('DELETE')
-              <button type="submit" class="btn btn-danger btn-sm">✕</button>
+              <button type="submit" class="btn btn-danger btn-sm" aria-label="Delete quiz">✕</button>
             </form>
           </div>
         </div>

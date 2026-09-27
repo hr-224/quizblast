@@ -135,6 +135,47 @@ class QuizEditorRedesignTest extends TestCase
         );
     }
 
+    public function test_answer_shape_tiles_get_per_index_color_classes(): void
+    {
+        $html = $this->html(1);
+        foreach (range(0, 3) as $i) {
+            $this->assertStringContainsString('class="ans-shape ans-fg-' . $i . '"', $html);
+        }
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertStringContainsString('.ans-fg-0{color:var(--ans-coral)}', $css);
+        $this->assertStringContainsString('.ans-fg-1{color:var(--ans-cyan)}', $css);
+        $this->assertStringContainsString('.ans-fg-2{color:var(--ans-lime)}', $css);
+        $this->assertStringContainsString('.ans-fg-3{color:var(--ans-amber)}', $css);
+    }
+
+    public function test_delete_question_button_has_accessible_name(): void
+    {
+        $html = $this->html(1);
+        $this->assertStringContainsString('aria-label="Delete question"', $html);
+    }
+
+    public function test_settings_toggle_has_aria_state_that_flips_with_the_panel(): void
+    {
+        $html = $this->html(0);
+        $this->assertMatchesRegularExpression('/id="settings-toggle"[^>]*aria-expanded="false"[^>]*aria-controls="edit-meta"|id="settings-toggle"[^>]*aria-controls="edit-meta"[^>]*aria-expanded="false"/', $html);
+
+        $src = $this->src();
+        $this->assertMatchesRegularExpression('/settingsToggle\.addEventListener\(\'click\', \(\) => \{[^}]*setAttribute\(\'aria-expanded\'/s', $src);
+    }
+
+    public function test_cancelling_a_card_returns_focus_to_its_opener(): void
+    {
+        $src = $this->src();
+        $this->assertMatchesRegularExpression('/if \(opener\) \{[^}]*opener\.focus\(\);[^}]*\}|if \(opener\) opener\.focus\(\);/s', $src);
+    }
+
+    public function test_reorder_failure_shows_an_alert(): void
+    {
+        $src = $this->src();
+        $this->assertStringContainsString("window.alert('Could not save the new order", $src);
+        $this->assertStringContainsString('res.ok', $src);
+    }
+
     public function test_settings_panel_and_header_actions_still_present(): void
     {
         ['host' => $host, 'quiz' => $quiz] = $this->makeQuiz(1);

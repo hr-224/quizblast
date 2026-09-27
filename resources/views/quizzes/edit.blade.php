@@ -16,7 +16,7 @@
         @csrf
         <button type="submit" class="btn btn-outline">⧉ Duplicate</button>
       </form>
-      <button type="button" class="btn btn-outline" id="settings-toggle">⚙ Settings</button>
+      <button type="button" class="btn btn-outline" id="settings-toggle" aria-expanded="false" aria-controls="edit-meta">⚙ Settings</button>
       <a href="{{ route('quizzes.embed', $quiz) }}" class="btn btn-outline">‹/› Embed</a>
       <form method="POST" action="{{ route('quizzes.destroy', $quiz) }}" class="inline-form" data-confirm="Delete this quiz? This cannot be undone.">
         @csrf @method('DELETE')
@@ -90,7 +90,7 @@
                 <div class="q-card-actions">
                   <form method="POST" action="{{ route('quizzes.deleteQuestion', [$quiz, $question]) }}" class="inline-form" data-confirm="Remove this question?">
                     @csrf @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-sm">✕</button>
+                    <button type="submit" class="btn btn-danger btn-sm" aria-label="Delete question">✕</button>
                   </form>
                 </div>
               </div>
@@ -142,7 +142,7 @@
                     @for($i = 0; $i < 4; $i++)
                       @php $ans = $sorted->get($i); @endphp
                       <div class="q-answer-row">
-                        <x-answer-shape :index="$i" />
+                        <x-answer-shape :index="$i" class="ans-fg-{{ $i }}" />
                         <input type="radio" name="correct_answers[]" value="{{ $i }}" class="q-single" {{ $ans && $ans->is_correct && !$question->multiple_correct ? 'checked' : '' }} />
                         <input type="checkbox" name="correct_answers[]" value="{{ $i }}" class="q-multi" {{ $ans && $ans->is_correct && $question->multiple_correct ? 'checked' : '' }} />
                         <input type="text" name="answers[{{ $i }}]" class="form-control" value="{{ $ans ? $ans->answer_text : '' }}" placeholder="Answer {{ $i + 1 }}{{ $i < 2 ? ' *' : '' }}" {{ $i < 2 ? 'required' : '' }} />
@@ -209,7 +209,7 @@
             <label class="form-label">Answers <span id="add-mode-label" class="q-mode-label field-hint">(select ONE correct)</span></label>
             @for($i = 0; $i < 4; $i++)
               <div class="q-answer-row">
-                <x-answer-shape :index="$i" />
+                <x-answer-shape :index="$i" class="ans-fg-{{ $i }}" />
                 <input type="radio" name="correct_answers[]" value="{{ $i }}" class="q-single" {{ old('correct_answers.0', 0) == $i ? 'checked' : '' }} />
                 <input type="checkbox" name="correct_answers[]" value="{{ $i }}" class="q-multi" />
                 <input type="text" name="answers[{{ $i }}]" class="form-control" value="{{ old('answers.' . $i) }}" placeholder="Answer {{ $i + 1 }}{{ $i < 2 ? ' *' : '' }}" {{ $i < 2 ? 'required' : '' }} />
@@ -234,7 +234,11 @@
   const settingsToggle = document.getElementById('settings-toggle');
   const settingsPanel  = document.getElementById('edit-meta');
   if (settingsToggle && settingsPanel) {
-    settingsToggle.addEventListener('click', () => settingsPanel.classList.toggle('hidden'));
+    settingsToggle.addEventListener('click', () => {
+      const willShow = settingsPanel.classList.contains('hidden');
+      settingsPanel.classList.toggle('hidden');
+      settingsToggle.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+    });
   }
 
   // Collapsible question cards
@@ -252,7 +256,7 @@
       const body = document.getElementById(btn.dataset.target);
       if (body) body.classList.add('hidden');
       const opener = document.querySelector('.q-card-summary[data-target="' + btn.dataset.target + '"]');
-      if (opener) opener.setAttribute('aria-expanded', 'false');
+      if (opener) { opener.setAttribute('aria-expanded', 'false'); opener.focus(); }
     });
   });
 
@@ -285,12 +289,15 @@
         const order = [...sortableEl.querySelectorAll('.q-card')].map(el => el.dataset.id);
         sortableEl.querySelectorAll('.q-num').forEach((el, i) => { el.textContent = 'Q' + (i + 1); });
         try {
-          await fetch(reorderUrl, {
+          const res = await fetch(reorderUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
             body: JSON.stringify({ order }),
           });
-        } catch (e) {}
+          if (!res.ok) window.alert('Could not save the new order — please refresh and try again.');
+        } catch (e) {
+          window.alert('Could not save the new order — please refresh and try again.');
+        }
       },
     });
   }

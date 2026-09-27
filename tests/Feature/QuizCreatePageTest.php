@@ -29,4 +29,10 @@ class QuizCreatePageTest extends TestCase
         $src = file_get_contents(resource_path('views/quizzes/create.blade.php'));
         $this->assertDoesNotMatchRegularExpression('/\sstyle\s*=|<style/i', $src);
     }
+
+    public function test_layout_loads_the_shared_confirm_script(): void
+    {
+        $src = file_get_contents(resource_path('views/layouts/app.blade.php'));
+        $this->assertStringContainsString('qb-confirm.js', $src);
+    }
 }
