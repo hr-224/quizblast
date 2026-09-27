@@ -186,8 +186,8 @@ html[data-fx="party"] .card{box-shadow:0 0 0 1px rgba(124,92,255,.08),0 12px 40p
 .grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
 .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
-@media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
 @media(max-width:1024px){.grid-3{grid-template-columns:repeat(2,1fr)}.grid-4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
 .quiz-card{background:var(--qb-card);border:2px solid var(--qb-border);border-radius:var(--radius);padding:1.25rem;transition:var(--transition);position:relative;overflow:hidden}
 .quiz-card:hover{border-color:var(--qb-purple3);background:var(--qb-surface);transform:translateY(-2px)}
 .quiz-card-title{font-size:.95rem;font-weight:800;margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.3px}
