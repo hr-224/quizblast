@@ -718,5 +718,20 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .pagination a:hover{color:var(--text);border-color:var(--line-strong)}
 .pagination .active span{background:var(--violet-deep);color:var(--white);border-color:transparent}
 .pagination .disabled span{opacity:.35}
+.dashboard-hero{background:var(--ink-2);padding:2rem 0;border-bottom:1px solid var(--line)}
+.quiz-card-badge{background:rgba(74,222,128,.16);border:1px solid rgba(74,222,128,.4);color:var(--ok);font-size:.7rem;font-weight:800;padding:.15rem .5rem;border-radius:var(--radius-sm);text-transform:uppercase;white-space:nowrap}
+.history-stat{padding:1.1rem}
+.q-preview-num-big{font-family:var(--font-display);font-weight:800;font-size:1.8rem}
+.q-preview-num-big.is-amber{color:var(--ans-amber)}
+.q-preview-num-big.is-ok{color:var(--ok)}
+.q-preview-num-big.is-bad{color:var(--bad)}
+.history-q-score{text-align:right;flex-shrink:0}
+.player-answer-pill{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .65rem;border-radius:var(--radius-sm);font-size:.8rem;font-weight:700;background:rgba(255,93,115,.10);border:1px solid rgba(255,93,115,.25);color:var(--text-muted)}
+.player-answer-pill.is-correct{background:rgba(74,222,128,.14);border-color:rgba(74,222,128,.35);color:var(--ok)}
+.justify-center{justify-content:center}
+.page-head-tight{margin:0}
+.quiz-card-head{margin:0 0 .6rem}
+.card-flush{padding:0;overflow:hidden}
+.q-preview-row-card{padding:.85rem 1.25rem}
 
 /* === END EDITOR & LIBRARY === */
