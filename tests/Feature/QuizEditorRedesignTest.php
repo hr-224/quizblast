@@ -110,6 +110,18 @@ class QuizEditorRedesignTest extends TestCase
         }
     }
 
+    public function test_drag_reorder_renumbers_via_dedicated_q_num_span(): void
+    {
+        ['host' => $host, 'quiz' => $quiz] = $this->makeQuiz(2);
+        $html = $this->actingAs($host)->get(route('quizzes.edit', $quiz))->getContent();
+        $this->assertStringContainsString('class="q-num"', $html);
+
+        $src = $this->src();
+        $this->assertMatchesRegularExpression('/querySelectorAll\(\'\.q-num\'\)/', $src);
+        $this->assertStringNotContainsString("querySelectorAll('.q-card-meta')", $src);
+        $this->assertStringNotContainsString('textContent.replace', $src);
+    }
+
     public function test_settings_panel_and_header_actions_still_present(): void
     {
         ['host' => $host, 'quiz' => $quiz] = $this->makeQuiz(1);

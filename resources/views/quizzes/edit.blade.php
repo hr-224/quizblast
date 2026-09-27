@@ -75,7 +75,7 @@
                 <span class="drag-handle" aria-hidden="true">⠿</span>
                 <button type="button" class="q-card-summary" data-target="q-body-{{ $question->id }}" aria-expanded="false">
                   <div class="q-card-meta">
-                    Q{{ $idx + 1 }} · {{ $question->time_limit }}s · {{ $question->points }} pts
+                    <span class="q-num">Q{{ $idx + 1 }}</span> · {{ $question->time_limit }}s · {{ $question->points }} pts
                     @if($question->multiple_correct)<span class="text-cyan"> · Multi</span>@endif
                     @if($question->image_url)<span class="text-yellow"> · Image</span>@endif
                     @if($question->video_url)<span class="text-yellow"> · Video</span>@endif
@@ -283,9 +283,7 @@
       chosenClass: 'sortable-chosen',
       onEnd: async () => {
         const order = [...sortableEl.querySelectorAll('.q-card')].map(el => el.dataset.id);
-        sortableEl.querySelectorAll('.q-card-meta').forEach((el, i) => {
-          el.textContent = el.textContent.replace(/^Q\d+/, 'Q' + (i + 1));
-        });
+        sortableEl.querySelectorAll('.q-num').forEach((el, i) => { el.textContent = 'Q' + (i + 1); });
         try {
           await fetch(reorderUrl, {
             method: 'POST',
