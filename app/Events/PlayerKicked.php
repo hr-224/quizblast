@@ -26,8 +26,8 @@ class PlayerKicked implements ShouldBroadcastNow
     {
         return [
             'player_id' => $this->playerId,
-            'count'     => $this->game->players()->count(),
-            'players'   => $this->game->players()->get(['id','nickname'])->toArray(),
+            'count'     => $this->game->players()->where('is_spectator', false)->count(),
+            'players'   => $this->game->players()->where('is_spectator', false)->get(['id','nickname'])->toArray(),
         ];
     }
 }

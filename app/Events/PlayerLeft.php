@@ -24,8 +24,8 @@ class PlayerLeft implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-            'count'   => $this->game->players()->count(),
-            'players' => $this->game->players()->get(['id','nickname'])->toArray(),
+            'count'   => $this->game->players()->where('is_spectator', false)->count(),
+            'players' => $this->game->players()->where('is_spectator', false)->get(['id','nickname'])->toArray(),
         ];
     }
 }

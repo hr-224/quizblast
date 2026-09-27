@@ -30,7 +30,7 @@ class PlayerJoined implements ShouldBroadcastNow
         return [
             'id'       => $this->player->id,
             'nickname' => $this->player->nickname,
-            'count'    => GamePlayer::where('game_id', $this->player->game_id)->count(),
+            'count'    => GamePlayer::where('game_id', $this->player->game_id)->where('is_spectator', false)->count(),
         ];
     }
 }
