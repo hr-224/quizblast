@@ -81,6 +81,30 @@ class HostStandingsTest extends TestCase
         );
     }
 
+    /**
+     * Final-review Group C: two players tied on score, both before and after this question,
+     * must render in a deterministic order (ascending player id) on every render.
+     */
+    public function test_tied_scores_render_in_deterministic_ascending_id_order(): void
+    {
+        ['host' => $host, 'game' => $game, 'players' => $p] = $this->makeHostGame('reviewing', 2, 2, '555009');
+        [$p1, $p2] = $p;
+        $p1->update(['score' => 500]);
+        $p2->update(['score' => 500]);
+
+        $names = function () use ($host, $game) {
+            $html = $this->actingAs($host)->get(route('game.question', $game))->assertOk()->getContent();
+            preg_match_all('/class="standings-name">\s*(Player\d)/', $html, $m);
+            return $m[1];
+        };
+
+        $first  = $names();
+        $second = $names();
+
+        $this->assertSame([$p1->nickname, $p2->nickname], $first, 'tied scores should render in ascending player-id order');
+        $this->assertSame($first, $second, 'the order must be identical across renders, not just stable-by-luck');
+    }
+
     public function test_popup_script_sets_move_from_data_and_closes_on_escape(): void
     {
         $src = $this->src();

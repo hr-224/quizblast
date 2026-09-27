@@ -135,7 +135,7 @@
     $earned   = $game->gameAnswers()->where('question_id', $question->id)
                      ->selectRaw('game_player_id, max(points_earned) as pts')->groupBy('game_player_id')
                      ->pluck('pts', 'game_player_id');
-    $standing = $game->players()->where('is_spectator', false)->orderByDesc('score')->get();
+    $standing = $game->players()->where('is_spectator', false)->orderByDesc('score')->orderBy('id')->get();
     $before   = $standing->sortByDesc(fn ($p) => $p->score - (int) $earned->get($p->id, 0))->values();
     $prevRank = $before->pluck('id')->flip()->map(fn ($i) => $i + 1);
   @endphp
