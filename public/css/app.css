@@ -686,3 +686,9 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .host-final-actions{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-top:1rem}
 
 /* === END HOST SCREENS === */
+
+/* ═══ 8. EDITOR & LIBRARY ═══ */
+.ans-chip{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .65rem;border-radius:999px;font-size:.8rem;font-weight:700;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--text-muted)}
+.ans-chip.is-correct{background:rgba(74,222,128,.14);border-color:rgba(74,222,128,.4);color:var(--ok)}
+
+/* === END EDITOR & LIBRARY === */
