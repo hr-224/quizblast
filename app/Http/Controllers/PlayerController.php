@@ -135,7 +135,7 @@ class PlayerController extends Controller
             'answer_ids.*'     => ['integer'],
             'question_id'      => ['required', 'integer'],
             'response_time_ms' => ['required', 'integer', 'min:0'],
-            'power_up'         => ['nullable', 'string', 'in:double_points,fifty_fifty,extra_time'],
+            'power_up'         => ['nullable', 'string', 'in:double_points,fifty_fifty,extra_time,spy'],
         ]);
 
         $game     = Game::where('pin', $pin)->where('status', 'question')->firstOrFail();
@@ -260,7 +260,11 @@ class PlayerController extends Controller
 
         $rank = null;
         if ($player) {
-            $rank = $players->search(fn($p) => $p->id === $player->id) + 1;
+            // search() returns false, not -1, when the player isn't in the ranked list
+            // (a spectator, or a player removed by stale-cleanup before viewing results).
+            // false + 1 === 1 in PHP, which silently showed such players as rank #1.
+            $index = $players->search(fn($p) => $p->id === $player->id);
+            $rank  = $index === false ? null : $index + 1;
         }
 
         $personalStats = null;
