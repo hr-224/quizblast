@@ -6,6 +6,7 @@ use App\Models\Quiz;
 use App\Models\Question;
 use App\Models\Answer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class QuizController extends Controller
 {
@@ -105,7 +106,14 @@ class QuizController extends Controller
             'image_url'        => ['nullable','url:http,https','max:500'],
             'video_url'        => ['nullable','url:http,https','max:500'],
             'multiple_correct' => ['nullable','boolean'],
+            'request_token'    => ['nullable','string','max:100'],
         ]);
+
+        // A double submit (double-click, or a retried request after a slow/dropped response)
+        // replays the same request_token; skip creating a second question for it.
+        if ($this->isDuplicateSubmission('add-question', $quiz, $request->input('request_token'))) {
+            return back()->with('success', 'Question added!');
+        }
 
         $order    = $quiz->questions()->count();
         $multiple = $request->boolean('multiple_correct') || count($request->correct_answers) > 1;
@@ -183,7 +191,14 @@ class QuizController extends Controller
             'image_url'        => ['nullable','url:http,https','max:500'],
             'video_url'        => ['nullable','url:http,https','max:500'],
             'multiple_correct' => ['nullable','boolean'],
+            'request_token'    => ['nullable','string','max:100'],
         ]);
+
+        // A double submit replays the same request_token; the first submit already
+        // applied this exact edit, so skip re-running the delete-and-recreate below.
+        if ($this->isDuplicateSubmission('update-question-' . $question->id, $quiz, $request->input('request_token'))) {
+            return back()->with('success', 'Question updated!');
+        }
 
         $multiple = $request->boolean('multiple_correct') || count($request->correct_answers) > 1;
 
@@ -214,7 +229,15 @@ class QuizController extends Controller
     public function reorderQuestions(Request $request, Quiz $quiz)
     {
         $this->authorize($quiz);
-        $request->validate(['order' => ['required', 'array']]);
+        $request->validate(['order' => ['required', 'array'], 'request_token' => ['nullable', 'string', 'max:100']]);
+
+        // A duplicate reorder POST for the same drag (e.g. a retried fetch) just
+        // reapplies the same order — this is a no-op, not a correctness issue, but
+        // skipping it avoids a redundant write and a stale response racing a fresh one.
+        if ($this->isDuplicateSubmission('reorder', $quiz, $request->input('request_token'))) {
+            return response()->json(['ok' => true]);
+        }
+
         foreach ($request->order as $idx => $questionId) {
             $quiz->questions()->where('id', $questionId)->update(['order' => $idx]);
         }
@@ -231,5 +254,19 @@ class QuizController extends Controller
     private function authorize(Quiz $quiz)
     {
         if ($quiz->user_id !== auth()->id()) abort(403);
+    }
+
+    /**
+     * True (and records the token) the second and later time a given request_token is seen
+     * for this quiz + action. A missing token never suppresses anything, so callers that
+     * don't send one behave exactly as before.
+     */
+    private function isDuplicateSubmission(string $action, Quiz $quiz, ?string $token): bool
+    {
+        if (!$token) return false;
+        $key = "quiz-request:{$quiz->id}:{$action}:{$token}";
+        if (Cache::has($key)) return true;
+        Cache::put($key, true, now()->addMinutes(10));
+        return false;
     }
 }

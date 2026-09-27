@@ -24,6 +24,10 @@
     <env name="DB_DATABASE"    value="kahoot_testing"/>
     <env name="BCRYPT_ROUNDS"  value="4"/>
     <env name="CACHE_STORE"    value="array"/>
+    <env name="CACHE_DRIVER"   value="array"/>
+    <!-- config/cache.php reads CACHE_DRIVER (not renamed to Laravel 11's CACHE_STORE convention);
+         CACHE_STORE alone silently did nothing and tests were hitting the real file cache. -->
+
     <env name="SESSION_DRIVER" value="array"/>
     <env name="QUEUE_CONNECTION" value="sync"/>
     <env name="BROADCAST_CONNECTION" value="log"/>

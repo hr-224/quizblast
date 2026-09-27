@@ -98,6 +98,7 @@
               <div class="q-card-body hidden" id="q-body-{{ $question->id }}">
                 <form method="POST" action="{{ route('quizzes.updateQuestion', [$quiz, $question]) }}">
                   @csrf @method('PUT')
+                  <input type="hidden" name="request_token" value="{{ \Illuminate\Support\Str::random(32) }}" />
                   <div class="form-group">
                     <label class="form-label">Question *</label>
                     <textarea name="question_text" class="form-control" rows="2" required>{{ $question->question_text }}</textarea>
@@ -166,6 +167,7 @@
       <div class="card">
         <form method="POST" action="{{ route('quizzes.addQuestion', $quiz) }}">
           @csrf
+          <input type="hidden" name="request_token" value="{{ \Illuminate\Support\Str::random(32) }}" />
           <div class="form-group">
             <label class="form-label">Question *</label>
             <textarea name="question_text" class="form-control" rows="2" placeholder="What is...?" required>{{ old('question_text') }}</textarea>
@@ -288,11 +290,12 @@
       onEnd: async () => {
         const order = [...sortableEl.querySelectorAll('.q-card')].map(el => el.dataset.id);
         sortableEl.querySelectorAll('.q-num').forEach((el, i) => { el.textContent = 'Q' + (i + 1); });
+        const requestToken = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : (Date.now() + '-' + Math.random());
         try {
           const res = await fetch(reorderUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-            body: JSON.stringify({ order }),
+            body: JSON.stringify({ order, request_token: requestToken }),
           });
           if (!res.ok) window.alert('Could not save the new order — please refresh and try again.');
         } catch (e) {
