@@ -47,6 +47,13 @@ class GamePlayer extends Model
 
     public static function removeStale(int $gameId): void
     {
+        $game = \App\Models\Game::find($gameId);
+        // Only prune no-shows while the game is still in the lobby. Once it has started,
+        // a phone that goes idle (screen lock, a backgrounded tab during the teacher's
+        // explanation) keeps its row and score — auto-removing it mid-game would silently
+        // drop the student, and their next answer would fail with "Time's up!".
+        if (!$game || $game->status !== 'waiting') return;
+
         $stale = static::where('game_id', $gameId)
             ->where('last_seen_at', '<', now()->subSeconds(20))
             ->whereNotNull('last_seen_at')
@@ -55,10 +62,9 @@ class GamePlayer extends Model
 
         if ($stale->isEmpty()) return;
 
-        $game = \App\Models\Game::find($gameId);
         foreach ($stale as $player) {
             $player->delete();
         }
-        if ($game) broadcast(new PlayerLeft($game));
+        broadcast(new PlayerLeft($game));
     }
 }
