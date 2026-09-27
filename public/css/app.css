@@ -591,4 +591,70 @@ html[data-fx="party"] .host-chip.is-idle:nth-child(3n+2){animation-delay:.6s}
 html[data-fx="party"] .host-chip.is-idle:nth-child(3n){animation-delay:1.2s}
 .kick-confirm{position:fixed;z-index:999;display:flex;align-items:center;gap:.6rem;background:var(--surface);border:2px solid var(--bad);border-radius:var(--radius);padding:.6rem 1rem;font-family:var(--font-display);font-weight:700;font-size:.9rem;box-shadow:0 12px 40px rgba(0,0,0,.6)}
 
+/* live question */
+.progress-dots{display:flex;gap:6px;flex-wrap:wrap;align-items:center;justify-content:center}
+.progress-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.2)}
+.progress-dot.is-done{background:var(--ok)}
+.progress-dot.is-current{background:var(--white);transform:scale(1.5)}
+.host-actions{display:flex;gap:.5rem;align-items:center}
+
+.host-question{width:100%;max-width:1280px;margin:0 auto;padding:1.25rem 2rem 2rem;display:flex;flex-direction:column;gap:1.25rem}
+.hq-head{display:flex;justify-content:center;align-items:center}
+.timer-ring{position:relative;width:96px;height:96px;flex-shrink:0}
+.timer-ring svg{display:block;transform:rotate(-90deg)}
+.timer-ring-track{fill:none;stroke:rgba(255,255,255,.12);stroke-width:8}
+.timer-ring-fill{fill:none;stroke:var(--ans-amber);stroke-width:8;stroke-linecap:round;stroke-dasharray:276;transition:stroke-dashoffset 1s linear,stroke .3s ease}
+.timer-ring.is-urgent .timer-ring-fill{stroke:var(--bad)}
+.timer-ring-num{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:2.4rem;color:var(--white)}
+@keyframes pulse-num{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 1s ease-in-out infinite}
+.revealed-badge{background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.4);color:var(--ok);padding:.6rem 1.6rem;border-radius:999px;font-family:var(--font-display);font-weight:800;font-size:1.1rem}
+
+.hq-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:2rem;text-align:center}
+.hq-media{display:block;max-height:240px;max-width:100%;margin:0 auto 1rem;border-radius:var(--radius)}
+.hq-video{position:relative;padding-bottom:38%;height:0;overflow:hidden;border-radius:var(--radius);margin-bottom:1rem}
+.hq-video iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+.hq-kicker{font-size:.9rem;font-weight:700;color:var(--text-muted);margin-bottom:.5rem}
+.hq-text{font-size:2rem;font-size:clamp(1.8rem,4vw,3.4rem);font-weight:800;line-height:1.2;overflow-wrap:anywhere;word-break:break-word}
+.hq-multi{color:var(--ans-cyan);font-weight:700;margin-top:.6rem}
+
+.hq-answers{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.host-tile{flex-direction:row;justify-content:flex-start;gap:1rem;min-height:5.5rem;padding:1.25rem 1.5rem;font-size:1.3rem;font-size:clamp(1.15rem,2.2vw,1.9rem);text-align:left}
+.host-tile .ans-shape{font-size:2.4rem;font-size:clamp(2rem,3.4vw,3.2rem)}
+.host-tile .ans-tile-label{flex:1;min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.host-tile .ans-tile-mark{position:static;flex-shrink:0;font-size:1.8rem}
+.host-tile.is-wrong{opacity:.55}
+
+.response-chart{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:1rem 1.25rem}
+.response-chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.85rem;font-size:.9rem;font-weight:700;color:var(--text-muted)}
+.response-bars{display:grid;gap:12px;align-items:end;height:150px}
+.response-bars.bars-2{grid-template-columns:repeat(2,1fr)}
+.response-bars.bars-3{grid-template-columns:repeat(3,1fr)}
+.response-bars.bars-4{grid-template-columns:repeat(4,1fr)}
+.response-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:5px}
+.response-count{font-family:var(--font-display);font-weight:800;font-size:1.1rem;line-height:1;color:var(--text)}
+.response-count.is-correct{color:var(--ans-amber)}
+.response-bar{width:100%;border-radius:6px 6px 0 0;background:var(--ans-coral)}
+.response-bar.ans-1{background:var(--ans-cyan)}
+.response-bar.ans-2{background:var(--ans-lime)}
+.response-bar.ans-3{background:var(--ans-amber)}
+.response-bar.is-correct{box-shadow:0 0 12px rgba(255,255,255,.25)}
+.response-label{display:flex;align-items:center;gap:.3rem;font-size:1rem;font-weight:700;color:var(--text-muted)}
+.response-label .ans-shape{font-size:1.2rem}
+.response-label.is-correct{color:var(--ans-amber)}
+
+/* 5-second reading overlay */
+.host-reading{position:fixed;top:0;right:0;bottom:0;left:0;z-index:900;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;text-align:center}
+.host-reading-top{display:flex;align-items:center;gap:1rem}
+.host-reading-hint{font-size:.9rem;font-weight:700;color:var(--text-muted)}
+.host-reading-text{max-width:1000px;font-size:2rem;font-size:clamp(2rem,5vw,4rem);font-weight:800;line-height:1.2;overflow-wrap:anywhere;word-break:break-word}
+
+/* floating emoji reactions + auto-advance */
+.emoji-overlay{position:fixed;top:0;right:0;bottom:0;left:0;pointer-events:none;z-index:500;overflow:hidden}
+.emoji-float{position:absolute;bottom:10%;font-size:2.5rem;pointer-events:none;animation:emoji-float 2.5s ease-out forwards}
+@keyframes emoji-float{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-180px) scale(1.4);opacity:0}}
+.autoadvance-bar{position:fixed;left:0;right:0;bottom:0;height:6px;background:rgba(255,255,255,.1);z-index:999}
+.autoadvance-fill{height:100%;width:100%;background:var(--ans-amber);transition:width 5s linear}
+.autoadvance-msg{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:999;background:var(--surface);border:1px solid var(--line-strong);color:var(--text);padding:.6rem 1.5rem;border-radius:999px;font-family:var(--font-display);font-weight:700;font-size:.95rem;white-space:nowrap}
+
 /* === END HOST SCREENS === */

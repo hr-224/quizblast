@@ -62,7 +62,12 @@ class DesignComponentsTest extends TestCase
 
     public function test_host_chart_uses_the_new_answer_colors(): void
     {
-        $src = file_get_contents(resource_path('views/host/question.blade.php'));
-        $this->assertStringContainsString("['#ff5d73','#22d3ee','#a3e635','#fbbf24']", $src);
+        // The chart bars are styled by CSS classes (no inline color array in the view any more).
+        $css = $this->css();
+        foreach (['coral' => '#ff5d73', 'cyan' => '#22d3ee', 'lime' => '#a3e635', 'amber' => '#fbbf24'] as $name => $hex) {
+            $this->assertStringContainsString("--ans-{$name}:{$hex}", $css);
+        }
+        $this->assertStringContainsString('.response-bar{width:100%;border-radius:6px 6px 0 0;background:var(--ans-coral)}', $css);
+        $this->assertStringContainsString('.response-bar.ans-3{background:var(--ans-amber)}', $css);
     }
 }
