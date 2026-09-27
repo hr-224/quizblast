@@ -690,5 +690,8 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 /* ═══ 8. EDITOR & LIBRARY ═══ */
 .ans-chip{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .65rem;border-radius:999px;font-size:.8rem;font-weight:700;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--text-muted)}
 .ans-chip.is-correct{background:rgba(74,222,128,.14);border-color:rgba(74,222,128,.4);color:var(--ok)}
+.page-head{display:flex;align-items:flex-start;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;margin:1.25rem 0}
+.page-head-actions{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;margin-top:1rem}
+.field-hint{font-size:.8rem;color:var(--text-muted);margin-top:.35rem}
 
 /* === END EDITOR & LIBRARY === */

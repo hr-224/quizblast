@@ -71,6 +71,7 @@
   @yield('content')
 </main>
 
+<script src="/js/qb-confirm.js?v={{ filemtime(public_path('js/qb-confirm.js')) }}"></script>
 <script src="/js/qb-ui.js?v={{ filemtime(public_path('js/qb-ui.js')) }}"></script>
 @stack('scripts')
 <script>
