@@ -93,6 +93,14 @@ class HostLobbyRedesignTest extends TestCase
         $this->assertStringContainsString("method: 'DELETE'", $src);
     }
 
+    /** Smoke run: at 1280x720 the chips sit at the bottom edge and the pop-over was cut off below the viewport. */
+    public function test_kick_popover_flips_above_the_chip_when_it_would_leave_the_viewport(): void
+    {
+        $src = $this->src();
+        $this->assertStringContainsString('window.innerHeight', $src);
+        $this->assertStringContainsString('r.top - h - 8', $src);
+    }
+
     public function test_every_id_the_script_reads_exists_in_the_markup(): void
     {
         $this->assertScriptIdsExist('host/lobby.blade.php');

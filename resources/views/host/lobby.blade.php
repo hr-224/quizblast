@@ -98,7 +98,11 @@
     const r = chip.getBoundingClientRect();
     const w = confirmBox.offsetWidth;
     confirmBox.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left)) + 'px';
-    confirmBox.style.top  = (r.bottom + 8) + 'px';
+    // Below the chip, or above it when there is no room (chips can sit at the bottom edge of a short screen).
+    const h = confirmBox.offsetHeight;
+    let top = r.bottom + 8;
+    if (top + h > window.innerHeight - 8) top = r.top - h - 8;
+    confirmBox.style.top = Math.max(8, top) + 'px';
     e.stopPropagation();
   }
 
