@@ -47,7 +47,7 @@ class HostQuestionRedesignTest extends TestCase
     public function test_reviewing_state_shows_chart_correct_tile_and_next_form(): void
     {
         $html = $this->html('reviewing');
-        foreach (['Response breakdown', 'responses', 'id="next-form"', 'id="next-btn"', 'Next →', 'Answers revealed!'] as $needle) {
+        foreach (['Response breakdown', 'responses', 'id="next-btn"', 'Next →', 'Answers revealed!', 'id="standings"'] as $needle) {
             $this->assertStringContainsString($needle, $html, $needle);
         }
         $this->assertSame(1, substr_count($html, 'host-tile is-locked ans-1 is-correct'));
@@ -60,6 +60,7 @@ class HostQuestionRedesignTest extends TestCase
     {
         $html = $this->html('reviewing', 1);
         $this->assertStringContainsString('🏆 Results', $html);
+        $this->assertStringContainsString('id="next-form"', $html);
         $this->assertStringContainsString('id="autoadvance-msg"', $html);
         $this->assertStringContainsString('id="autoadvance-fill"', $html);
     }

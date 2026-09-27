@@ -19,11 +19,13 @@
 
 @section('topbar-right')
   <div class="host-actions">
-    @if($reviewing)
+    @if($reviewing && $isLast)
       <form method="POST" action="{{ route('game.next', $game) }}" id="next-form" class="inline-form">
         @csrf
-        <button type="submit" class="btn btn-success" id="next-btn">{{ $isLast ? '🏆 Results' : 'Next →' }}</button>
+        <button type="submit" class="btn btn-success" id="next-btn">🏆 Results</button>
       </form>
+    @elseif($reviewing)
+      <button type="button" class="btn btn-success" id="next-btn" aria-haspopup="dialog">Next →</button>
     @else
       <form method="POST" action="{{ route('game.skip', $game) }}" class="inline-form" data-confirm="Skip this question?">
         @csrf
@@ -123,6 +125,47 @@
     @endforeach
   </div>
 </div>
+
+@if($reviewing && ! $isLast)
+  @php
+    $earned   = $game->gameAnswers()->where('question_id', $question->id)
+                     ->selectRaw('game_player_id, max(points_earned) as pts')->groupBy('game_player_id')
+                     ->pluck('pts', 'game_player_id');
+    $standing = $game->players()->where('is_spectator', false)->orderByDesc('score')->get();
+    $before   = $standing->sortByDesc(fn ($p) => $p->score - (int) $earned->get($p->id, 0))->values();
+    $prevRank = $before->pluck('id')->flip()->map(fn ($i) => $i + 1);
+  @endphp
+  <div id="standings" class="standings hidden" role="dialog" aria-modal="true" aria-labelledby="standings-title">
+    <div class="standings-panel">
+      <div class="standings-head">
+        <h2 class="standings-title" id="standings-title">🏆 Standings</h2>
+        <span class="stat-chip">After Q{{ $game->current_question + 1 }}/{{ $questions->count() }}</span>
+      </div>
+      <ol class="standings-list">
+        @foreach($standing->take(5) as $idx => $p)
+          @php
+            $rank = $idx + 1;
+            $move = (int) $prevRank->get($p->id, $rank) - $rank;
+            $gain = (int) $earned->get($p->id, 0);
+          @endphp
+          <li class="standings-row" data-move="{{ $move }}">
+            <span class="standings-rank">{{ $rank }}</span>
+            <span class="standings-name">{{ $p->nickname }}@if($p->streak >= 3) <span class="lb-streak-badge">🔥{{ $p->streak }}</span>@endif</span>
+            @if($gain > 0)<span class="standings-gain">+{{ number_format($gain) }}</span>@endif
+            <span class="standings-move {{ $move > 0 ? 'is-up' : ($move < 0 ? 'is-down' : 'is-same') }}">{{ $move > 0 ? '↑' . $move : ($move < 0 ? '↓' . abs($move) : '–') }}</span>
+            <span class="standings-score">{{ number_format($p->score) }}</span>
+          </li>
+        @endforeach
+      </ol>
+      <div class="standings-actions">
+        <form method="POST" action="{{ route('game.next', $game) }}">
+          @csrf
+          <button type="submit" class="btn btn-success btn-xl" id="standings-next">Next question →</button>
+        </form>
+      </div>
+    </div>
+  </div>
+@endif
 
 @if($reviewing && $isLast)
   <div class="autoadvance" id="autoadvance">
@@ -224,6 +267,17 @@
       });
     }
   } catch (e) {}
+
+  // Standings pop-up (non-last question, after the reveal)
+  const standings = document.getElementById('standings');
+  const nextBtn   = document.getElementById('next-btn');
+  if (standings && nextBtn) {
+    standings.querySelectorAll('.standings-row').forEach(row => row.style.setProperty('--move', row.dataset.move));
+    const openStandings  = () => { standings.classList.remove('hidden'); document.getElementById('standings-next').focus(); };
+    const closeStandings = () => { standings.classList.add('hidden'); nextBtn.focus(); };
+    nextBtn.addEventListener('click', openStandings);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !standings.classList.contains('hidden')) closeStandings(); });
+  }
 
   // Auto-advance to the final results 5s after the last question is revealed
   const advanceMsg = document.getElementById('autoadvance-msg');

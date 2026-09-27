@@ -657,4 +657,24 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .autoadvance-fill{height:100%;width:100%;background:var(--ans-amber);transition:width 5s linear}
 .autoadvance-msg{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:999;background:var(--surface);border:1px solid var(--line-strong);color:var(--text);padding:.6rem 1.5rem;border-radius:999px;font-family:var(--font-display);font-weight:700;font-size:.95rem;white-space:nowrap}
 
+/* standings pop-up */
+.standings{position:fixed;top:0;right:0;bottom:0;left:0;z-index:800;display:flex;align-items:center;justify-content:center;padding:2rem;background:rgba(11,10,26,.94)}
+.standings-panel{width:100%;max-width:640px}
+.standings-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.standings-title{font-size:1.6rem;color:var(--ans-amber)}
+.standings-list{list-style:none;display:flex;flex-direction:column;gap:.5rem}
+.standings-row{display:flex;align-items:center;gap:1rem;padding:.9rem 1.25rem;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius);animation:standings-move .7s cubic-bezier(.34,1.2,.64,1) both}
+.standings-row:first-child{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.4)}
+.standings-rank{width:2rem;text-align:center;font-family:var(--font-display);font-weight:800;font-size:1.4rem}
+.standings-name{flex:1;min-width:0;font-family:var(--font-display);font-weight:700;font-size:1.2rem;overflow-wrap:anywhere;word-break:break-word}
+.standings-gain{color:var(--ok);font-weight:700;font-size:.95rem}
+.standings-move{min-width:2.6rem;text-align:center;font-weight:800;font-size:.9rem}
+.standings-move.is-up{color:var(--ok)}
+.standings-move.is-down{color:#ff8a9a}
+.standings-move.is-same{color:var(--text-muted)}
+.standings-score{min-width:4.5rem;text-align:right;font-family:var(--font-display);font-weight:800;font-size:1.3rem;color:var(--ans-amber)}
+.standings-actions{text-align:center;margin-top:1.5rem}
+/* rows glide from their previous position (set via --move by the page script); Calm shows them in place */
+@keyframes standings-move{from{transform:translateY(calc(var(--move,0) * 115%))}to{transform:none}}
+
 /* === END HOST SCREENS === */
