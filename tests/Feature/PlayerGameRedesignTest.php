@@ -129,4 +129,47 @@ class PlayerGameRedesignTest extends TestCase
             $css
         );
     }
+
+    public function test_review_score_count_up_does_not_replay_on_repeated_renders(): void
+    {
+        $src = $this->src();
+        $this->assertMatchesRegularExpression(
+            '/countUp\(document\.getElementById\(\'review-score\'\), scoreBefore, myScore\);\s*\/\/[^\n]*\n\s*scoreBefore = myScore;/',
+            $src
+        );
+    }
+
+    public function test_fifty_fifty_elimination_disables_and_deselects_tiles(): void
+    {
+        $src = $this->src();
+        $this->assertMatchesRegularExpression('/is-eliminated\'\);\s*tile\.disabled = true;/', $src);
+        $this->assertStringContainsString('selectedAnswers.delete(Number(tile.dataset.answerId))', $src);
+        $this->assertStringContainsString("getElementById('submit-multi-btn').disabled = selectedAnswers.size === 0", $src);
+    }
+
+    public function test_multi_hint_uses_spec_wording(): void
+    {
+        $html = $this->html();
+        $this->assertStringContainsString('Select all that apply', $html);
+        $this->assertStringNotContainsString('Select all correct answers', $html);
+    }
+
+    public function test_live_region_is_on_the_verdict_card_not_the_reading_overlay(): void
+    {
+        $html = $this->html();
+        $this->assertMatchesRegularExpression('/<div id="reading-overlay"(?![^>]*(aria-live|role=))[^>]*>/', $html);
+        $this->assertMatchesRegularExpression('/<div id="review-verdict-card"[^>]*role="status"[^>]*aria-live="polite"/', $html);
+    }
+
+    public function test_a_touchstart_listener_enables_ios_active_states(): void
+    {
+        $this->assertStringContainsString("document.addEventListener('touchstart', function () {}, { passive: true });", $this->src());
+    }
+
+    public function test_review_wrong_tiles_stay_readable_and_wrap_text_on_old_ios(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertStringContainsString('.review-answers .ans-tile.is-wrong{opacity:.55}', $css);
+        $this->assertStringContainsString('.review-answers .ans-tile-label{flex:1;overflow-wrap:anywhere;word-break:break-word}', $css);
+    }
 }

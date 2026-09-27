@@ -479,7 +479,8 @@ body.game-active{overflow:hidden;touch-action:none;overscroll-behavior:none}
 .review-answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:1rem}
 .review-answers .ans-tile{flex-direction:row;justify-content:flex-start;gap:.6rem;min-height:64px;padding:.75rem 1rem;font-size:1rem;text-align:left}
 .review-answers .ans-tile .ans-shape{font-size:1.6rem}
-.review-answers .ans-tile-label{flex:1;overflow-wrap:anywhere}
+.review-answers .ans-tile-label{flex:1;overflow-wrap:anywhere;word-break:break-word}
+.review-answers .ans-tile.is-wrong{opacity:.55}
 .review-answers .ans-tile-mark{position:static;flex-shrink:0;font-size:1.3rem}
 .review-score-card{margin-top:1rem;padding:1rem;text-align:center}
 .review-score-label{font-size:.8rem;color:var(--text-muted)}
@@ -521,7 +522,7 @@ body.game-active{overflow:hidden;touch-action:none;overscroll-behavior:none}
 .podium-col{flex:0 1 96px;min-width:0;text-align:center;animation:podium-rise .7s cubic-bezier(.34,1.4,.64,1) both}
 .podium-col:nth-child(2){animation-delay:.2s}
 .podium-col:nth-child(3){animation-delay:.4s}
-.podium-name{font-weight:700;font-size:.9rem;margin-bottom:.3rem;overflow-wrap:anywhere}
+.podium-name{font-weight:700;font-size:.9rem;margin-bottom:.3rem;overflow-wrap:anywhere;word-break:break-word}
 .podium-name.is-you{color:var(--ans-amber)}
 .podium-score{font-family:var(--font-display);font-weight:800;font-size:.95rem;color:var(--ans-cyan);margin-bottom:.4rem}
 .podium-block{border:1px solid var(--line-strong);border-radius:var(--radius) var(--radius) 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:.5rem;font-size:1.8rem}
@@ -532,7 +533,7 @@ body.game-active{overflow:hidden;touch-action:none;overscroll-behavior:none}
 .leaderboard-list{list-style:none}
 .leaderboard-item{display:flex;align-items:center;gap:.9rem;padding:.75rem 1rem;border-radius:var(--radius);margin-bottom:.4rem;background:var(--surface-2);border:1px solid var(--line)}
 .leaderboard-rank{font-family:var(--font-display);font-weight:800;font-size:1.1rem;width:2.2rem;text-align:center}
-.leaderboard-name{flex:1;min-width:0;font-weight:700;overflow-wrap:anywhere}
+.leaderboard-name{flex:1;min-width:0;font-weight:700;text-transform:none;letter-spacing:normal;font-size:1rem;overflow-wrap:anywhere;word-break:break-word}
 .leaderboard-score{font-family:var(--font-display);font-weight:800;font-size:1.1rem;color:var(--ans-amber)}
 .leaderboard-item.lb-rank-1{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.4)}
 .leaderboard-item.lb-rank-2{background:rgba(190,190,220,.10);border-color:rgba(190,190,220,.28)}

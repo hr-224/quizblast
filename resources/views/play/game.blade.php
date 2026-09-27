@@ -14,7 +14,7 @@
 @section('content')
 
 {{-- 5-second reading countdown --}}
-<div id="reading-overlay" class="reading-overlay hidden" role="status" aria-live="polite">
+<div id="reading-overlay" class="reading-overlay hidden">
   <p class="reading-hint">Look at the host screen!</p>
   <div class="ring">
     <svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
@@ -41,7 +41,7 @@
 
     <div id="q-meta" class="q-meta">
       <span class="stat-chip" id="q-progress">Q?/?</span>
-      <p id="multi-hint" class="multi-hint hidden">Select all correct answers</p>
+      <p id="multi-hint" class="multi-hint hidden">Select all that apply</p>
     </div>
 
     <div id="answer-grid" class="answer-grid hidden" role="group" aria-label="Answer choices"></div>
@@ -77,7 +77,7 @@
 
   {{-- Reviewing --}}
   <div id="state-reviewing" class="review-screen hidden">
-    <div id="review-verdict-card" class="review-verdict-card review-verdict-neutral">
+    <div id="review-verdict-card" class="review-verdict-card review-verdict-neutral" role="status" aria-live="polite">
       <div class="review-icon" id="review-icon">—</div>
       <h2 class="review-title" id="review-title">—</h2>
       <p class="review-points" id="review-points">—</p>
@@ -155,6 +155,8 @@
 
   // Prevent scroll/pull-to-refresh on mobile while a question is live
   document.addEventListener('touchmove', e => { if (document.body.classList.contains('game-active')) e.preventDefault(); }, { passive: false });
+  // iOS Safari only applies :active styles when the document has a touch listener
+  document.addEventListener('touchstart', function () {}, { passive: true });
 
   function showState(name) {
     ['waiting', 'question', 'reviewing', 'finished'].forEach(s => setHidden(document.getElementById('state-' + s), s !== name));
@@ -227,8 +229,15 @@
         if (type === 'fifty_fifty' && data.eliminate && data.eliminate.length) {
           const gone = new Set(data.eliminate.map(Number));
           document.querySelectorAll('#answer-grid .ans-tile').forEach(tile => {
-            if (gone.has(Number(tile.dataset.answerId))) tile.classList.add('is-eliminated');
+            if (gone.has(Number(tile.dataset.answerId))) {
+              tile.classList.add('is-eliminated');
+              tile.disabled = true;
+              tile.classList.remove('is-selected');
+              if (isMultiple) tile.setAttribute('aria-pressed', 'false');
+              selectedAnswers.delete(Number(tile.dataset.answerId));
+            }
           });
+          document.getElementById('submit-multi-btn').disabled = selectedAnswers.size === 0;
         }
       }).catch(() => {});
   }
@@ -293,6 +302,8 @@
     else { setHidden(streakEl, true); }
 
     countUp(document.getElementById('review-score'), scoreBefore, myScore);
+    // Later renders (repeat polls with Reverb down) start from here, so the count-up plays only once per score change.
+    scoreBefore = myScore;
   }
 
   function renderRank() {

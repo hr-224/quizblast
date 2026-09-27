@@ -85,4 +85,20 @@ class PlayerFinalRedesignTest extends TestCase
         $css = file_get_contents(public_path('css/app.css'));
         $this->assertMatchesRegularExpression('/\.results\{[^}]*width:100%/', $css);
     }
+
+    public function test_new_leaderboard_name_rule_overrides_the_legacy_uppercase_style(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertStringContainsString(
+            '.leaderboard-name{flex:1;min-width:0;font-weight:700;text-transform:none;letter-spacing:normal;font-size:1rem;overflow-wrap:anywhere;word-break:break-word}',
+            $css
+        );
+    }
+
+    public function test_every_overflow_wrap_anywhere_has_a_word_break_fallback(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertGreaterThanOrEqual(4, substr_count($css, 'overflow-wrap:anywhere'));
+        $this->assertSame(substr_count($css, 'overflow-wrap:anywhere'), substr_count($css, 'overflow-wrap:anywhere;word-break:break-word'));
+    }
 }
