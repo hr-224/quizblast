@@ -566,3 +566,29 @@ html[data-fx="party"] .lobby-chip:nth-child(3n+2){animation-delay:-1.1s}
 html[data-fx="party"] .lobby-chip:nth-child(3n){animation-delay:-2.1s}
 
 /* === END PLAYER SCREENS === */
+
+/* ═══ 7. HOST SCREENS ═══ */
+/* lobby */
+.host-lobby{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem 1.5rem;gap:.35rem}
+.join-hint{font-size:1.05rem;font-weight:700;color:var(--text-muted)}
+.join-hint strong{color:var(--ans-amber)}
+.pin-hero{font-family:var(--font-display);font-weight:800;font-size:5rem;font-size:clamp(4rem,13vw,9rem);line-height:1;letter-spacing:.08em;color:var(--white);margin:.25rem 0 .5rem;text-shadow:0 0 40px rgba(124,92,255,.45)}
+.qr-card{display:inline-block;background:var(--white);padding:.6rem;border-radius:var(--radius);margin:.5rem 0 1rem}
+.qr-card img{display:block}
+.lobby-count{display:flex;align-items:center;justify-content:center;gap:.6rem;font-family:var(--font-display);font-weight:800;font-size:1.25rem}
+.lobby-hint{font-size:.85rem;color:var(--text-muted);margin:.25rem 0 1.25rem}
+.btn-sub{font-size:.85rem;font-weight:600;opacity:.75;margin-left:.4rem}
+.host-meta{font-size:.9rem;color:var(--text-muted);margin-top:.75rem}
+.host-meta strong{color:var(--text)}
+.host-chips{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;align-items:flex-start;width:100%;max-width:900px;margin-top:1.5rem;padding:.5rem 0}
+.host-chip{background:var(--surface-2);border:1px solid var(--line-strong);border-radius:999px;padding:.4rem 1rem;color:var(--text);font-family:var(--font-display);font-weight:700;font-size:.95rem;cursor:pointer;transition:var(--transition)}
+.host-chip:hover,.host-chip:focus-visible{background:rgba(255,93,115,.18);border-color:var(--bad)}
+.host-chip.is-leaving{opacity:0;transform:scale(.7);transition:opacity .3s,transform .3s}
+@keyframes chip-in{0%{opacity:0;transform:translateY(12px) scale(.85)}100%{opacity:1;transform:none}}
+html[data-fx="party"] .host-chip{animation:chip-in .4s cubic-bezier(.34,1.4,.64,1) both}
+html[data-fx="party"] .host-chip.is-idle{animation:chip-drift 3.4s ease-in-out infinite}
+html[data-fx="party"] .host-chip.is-idle:nth-child(3n+2){animation-delay:.6s}
+html[data-fx="party"] .host-chip.is-idle:nth-child(3n){animation-delay:1.2s}
+.kick-confirm{position:fixed;z-index:999;display:flex;align-items:center;gap:.6rem;background:var(--surface);border:2px solid var(--bad);border-radius:var(--radius);padding:.6rem 1rem;font-family:var(--font-display);font-weight:700;font-size:.9rem;box-shadow:0 12px 40px rgba(0,0,0,.6)}
+
+/* === END HOST SCREENS === */
