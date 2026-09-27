@@ -122,6 +122,19 @@ class QuizEditorRedesignTest extends TestCase
         $this->assertStringNotContainsString('textContent.replace', $src);
     }
 
+    public function test_hidden_correct_answer_inputs_are_also_disabled_so_they_do_not_submit(): void
+    {
+        $src = $this->src();
+        $this->assertMatchesRegularExpression(
+            "/q-single'\\)\\.forEach\\(el => \\{ el\\.classList\\.toggle\\('hidden', isMulti\\); el\\.disabled = isMulti; \\}\\)/",
+            $src
+        );
+        $this->assertMatchesRegularExpression(
+            "/q-multi'\\)\\.forEach\\(el => \\{ el\\.classList\\.toggle\\('hidden', !isMulti\\); el\\.disabled = !isMulti; \\}\\)/",
+            $src
+        );
+    }
+
     public function test_settings_panel_and_header_actions_still_present(): void
     {
         ['host' => $host, 'quiz' => $quiz] = $this->makeQuiz(1);

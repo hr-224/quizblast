@@ -264,8 +264,8 @@
     function update() {
       const isMulti = toggle.checked;
       if (label) label.textContent = isMulti ? '(select ALL correct)' : '(select ONE correct)';
-      form.querySelectorAll('.q-single').forEach(el => el.classList.toggle('hidden', isMulti));
-      form.querySelectorAll('.q-multi').forEach(el => el.classList.toggle('hidden', !isMulti));
+      form.querySelectorAll('.q-single').forEach(el => { el.classList.toggle('hidden', isMulti); el.disabled = isMulti; });
+      form.querySelectorAll('.q-multi').forEach(el => { el.classList.toggle('hidden', !isMulti); el.disabled = !isMulti; });
     }
     toggle.addEventListener('change', update);
     update();
