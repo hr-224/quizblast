@@ -120,4 +120,13 @@ class PlayerGameRedesignTest extends TestCase
             $this->assertStringContainsString($needle, $css, $needle);
         }
     }
+
+    public function test_review_check_mark_sits_in_the_tile_flow_so_it_cannot_cover_the_label(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertMatchesRegularExpression(
+            '/\.review-answers \.ans-tile-mark\{[^}]*position:static/',
+            $css
+        );
+    }
 }

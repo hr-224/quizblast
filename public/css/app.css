@@ -480,6 +480,7 @@ body.game-active{overflow:hidden;touch-action:none;overscroll-behavior:none}
 .review-answers .ans-tile{flex-direction:row;justify-content:flex-start;gap:.6rem;min-height:64px;padding:.75rem 1rem;font-size:1rem;text-align:left}
 .review-answers .ans-tile .ans-shape{font-size:1.6rem}
 .review-answers .ans-tile-label{flex:1;overflow-wrap:anywhere}
+.review-answers .ans-tile-mark{position:static;flex-shrink:0;font-size:1.3rem}
 .review-score-card{margin-top:1rem;padding:1rem;text-align:center}
 .review-score-label{font-size:.8rem;color:var(--text-muted)}
 .review-score{font-family:var(--font-display);font-weight:800;font-size:2.5rem;color:var(--ans-amber)}
@@ -502,13 +503,13 @@ body.game-active{overflow:hidden;touch-action:none;overscroll-behavior:none}
 .suspense-score{font-family:var(--font-display);font-weight:700;font-size:clamp(1.2rem,4vw,1.8rem);color:var(--ans-amber)}
 .suspense-you{display:inline-block;margin-top:.75rem;padding:.35rem .9rem;background:var(--violet-deep);border-radius:999px;font-family:var(--font-display);font-weight:700;font-size:.9rem;color:var(--white)}
 
-.results{max-width:700px;margin:0 auto;padding:1.5rem 1.25rem 3rem}
+.results{width:100%;max-width:700px;margin:0 auto;padding:1.5rem 1.25rem 3rem}
 .result-hero{text-align:center;margin-bottom:1.5rem}
 .result-medal{font-size:3rem;line-height:1}
 .result-medal.is-podium{font-size:5rem}
 .result-name{font-size:clamp(1.6rem,4vw,2.2rem);margin:.25rem 0;word-break:break-word}
 .result-rank{color:var(--text-muted)}
-.result-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:.75rem;max-width:440px;margin:1.25rem auto 0}
+.result-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:.75rem;max-width:440px;margin:1.25rem auto 0}
 .result-stat{padding:1rem;text-align:center}
 .result-stat-label{font-size:.75rem;color:var(--text-muted);margin-bottom:.25rem}
 .result-stat-val{font-family:var(--font-display);font-weight:800;font-size:1.5rem}

@@ -77,4 +77,12 @@ class PlayerFinalRedesignTest extends TestCase
             $this->assertStringContainsString($needle, $css, $needle);
         }
     }
+
+    public function test_results_column_is_full_width_so_it_cannot_widen_the_page(): void
+    {
+        // In the game shell's column flexbox a margin:0 auto item shrink-wraps its content and
+        // overflowed a 390px phone by 4px; width:100% keeps it inside the viewport.
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertMatchesRegularExpression('/\.results\{[^}]*width:100%/', $css);
+    }
 }
