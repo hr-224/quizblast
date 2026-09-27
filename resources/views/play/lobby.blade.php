@@ -19,6 +19,7 @@
     <span id="lobby-count">…</span>
     <span class="lobby-count-label">players joined</span>
   </div>
+  <div id="player-chips" class="lobby-chips" aria-label="Players in this game"></div>
   <div id="join-ticker" class="lobby-join-ticker" aria-live="polite"></div>
 
   <div class="lobby-nick-badge">
@@ -39,11 +40,13 @@
 (function () {
   const pin       = '{{ $game->pin }}';
   const myId      = {{ (int) session('player_id_' . $game->pin) }};
+  const myNickname = @json($player->nickname);
   const appKey    = '{{ config('broadcasting.connections.reverb.key') }}';
   const wsHost    = '{{ config('broadcasting.connections.reverb.options.host') }}';
   const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
   const countEl  = document.getElementById('lobby-count');
+  const chipsEl  = document.getElementById('player-chips');
   const tickerEl = document.getElementById('join-ticker');
   const dotEl    = document.getElementById('conn-dot');
   const statusEl = document.getElementById('status-text');
@@ -60,6 +63,27 @@
   }
 
   function setCount(n) { if (countEl && n !== undefined) countEl.textContent = n; }
+
+  function makeChip(nickname) {
+    const chip = document.createElement('span');
+    chip.className = 'lobby-chip' + (nickname === myNickname ? ' is-me' : '');
+    chip.textContent = nickname;
+    return chip;
+  }
+
+  function renderChips(players) {
+    if (!chipsEl || !players) return;
+    chipsEl.textContent = '';
+    players.slice(0, 60).forEach(p => chipsEl.appendChild(makeChip(p.nickname)));
+  }
+
+  function addChip(nickname) {
+    if (!chipsEl || chipsEl.children.length >= 60) return;
+    for (let i = 0; i < chipsEl.children.length; i++) {
+      if (chipsEl.children[i].textContent === nickname) return;
+    }
+    chipsEl.appendChild(makeChip(nickname));
+  }
 
   function setLive(live, text) {
     dotEl.classList.toggle('is-live', live);
@@ -92,8 +116,8 @@
       const channel = pusher.subscribe('game.' + pin);
       channel.bind('player-kicked', d => { if (d.player_id == myId) go('/play?kicked=1'); });
       channel.bind('game-state-changed', d => routeByStatus(d.status));
-      channel.bind('player-joined', d => { setCount(d.count); showJoinTicker(d.nickname); });
-      channel.bind('player-left', d => { setCount(d.count); hideTicker(); });
+      channel.bind('player-joined', d => { setCount(d.count); addChip(d.nickname); showJoinTicker(d.nickname); });
+      channel.bind('player-left', d => { setCount(d.count); renderChips(d.players); hideTicker(); });
     }
   } catch (e) {
     pusher = null;
@@ -103,14 +127,15 @@
   // Polling: initial count, and the fallback whenever the socket is not connected.
   async function poll() {
     try {
-      const res  = await fetch('/api/game/' + pin + '/state');
+      const res  = await fetch('/api/game/' + pin + '/players');
       const data = await res.json();
-      setCount(data.player_count);
+      setCount(data.count);
       routeByStatus(data.status);
+      renderChips(data.players);
     } catch (e) {}
   }
   poll();
-  setInterval(() => { if (!pusher || pusher.connection.state !== 'connected') poll(); }, 3000);
+  setInterval(() => { if (!pusher || pusher.connection.state !== 'connected') poll(); }, 5000);
 
   // Heartbeat keeps the player from being removed as stale
   setInterval(() => {
