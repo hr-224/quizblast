@@ -88,4 +88,39 @@ class HostAnswerChartTest extends TestCase
         // Total answered = 2 responses
         $response->assertSee('2 responses');
     }
+
+    /**
+     * Final-review Group B: a multi-correct question writes one GameAnswer row per selected
+     * answer, so a row count over-reports how many distinct players answered. The topbar chip
+     * and the chart header must show distinct players (1), not rows (2).
+     */
+    public function test_multi_correct_answer_count_is_distinct_players_not_rows(): void
+    {
+        $host = User::create(['name' => 'Host2', 'email' => 'host2@test.com', 'password' => bcrypt('password')]);
+        $quiz = Quiz::create(['user_id' => $host->id, 'title' => 'Multi Quiz']);
+        $question = Question::create([
+            'quiz_id' => $quiz->id, 'question_text' => 'Pick two?', 'time_limit' => 20,
+            'points' => 1000, 'order' => 0, 'multiple_correct' => true,
+        ]);
+        $answers = collect([
+            Answer::create(['question_id' => $question->id, 'answer_text' => 'A', 'is_correct' => true, 'order' => 0]),
+            Answer::create(['question_id' => $question->id, 'answer_text' => 'B', 'is_correct' => true, 'order' => 1]),
+            Answer::create(['question_id' => $question->id, 'answer_text' => 'C', 'is_correct' => false, 'order' => 2]),
+            Answer::create(['question_id' => $question->id, 'answer_text' => 'D', 'is_correct' => false, 'order' => 3]),
+        ]);
+        $game = Game::create([
+            'user_id' => $host->id, 'quiz_id' => $quiz->id, 'pin' => '654321',
+            'status' => 'reviewing', 'current_question' => 0,
+        ]);
+        $p1 = GamePlayer::create(['game_id' => $game->id, 'nickname' => 'Solo', 'session_id' => 'solo1']);
+        // One player selects both correct answers → two GameAnswer rows for one player.
+        GameAnswer::create(['game_id' => $game->id, 'game_player_id' => $p1->id, 'question_id' => $question->id, 'answer_id' => $answers[0]->id]);
+        GameAnswer::create(['game_id' => $game->id, 'game_player_id' => $p1->id, 'question_id' => $question->id, 'answer_id' => $answers[1]->id]);
+
+        $html = $this->actingAs($host)->get(route('game.question', $game))->assertOk()->getContent();
+
+        $this->assertStringContainsString('1 responses', $html);
+        $this->assertStringNotContainsString('2 responses', $html);
+        $this->assertMatchesRegularExpression('/id="answered-count">1</', $html);
+    }
 }

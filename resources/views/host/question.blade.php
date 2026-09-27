@@ -5,6 +5,10 @@
   $isLast    = $game->current_question + 1 >= $questions->count();
   $reviewing = $game->status === 'reviewing';
   $remaining = $game->timeRemaining();
+  // A multi-correct question writes one GameAnswer row per selected answer, so $totalAnswered
+  // (a row count) can exceed the real player count; count distinct players instead.
+  $distinctAnswered = $game->gameAnswers()->where('question_id', $question->id)
+                            ->distinct('game_player_id')->count('game_player_id');
 @endphp
 
 @section('topbar-center')
@@ -14,7 +18,7 @@
     @endforeach
   </div>
   <span class="stat-chip">Q <span class="val">{{ $game->current_question + 1 }}</span>/{{ $questions->count() }}</span>
-  <span class="stat-chip">👥 <span class="val" id="answered-count">{{ $totalAnswered }}</span>/{{ $totalPlayers }}</span>
+  <span class="stat-chip">👥 <span class="val" id="answered-count">{{ $distinctAnswered }}</span>/{{ $totalPlayers }}</span>
 @endsection
 
 @section('topbar-right')
@@ -98,7 +102,7 @@
     <div class="response-chart">
       <div class="response-chart-head">
         <span>Response breakdown</span>
-        <span>{{ $totalAnswered }} responses</span>
+        <span>{{ $distinctAnswered }} responses</span>
       </div>
       <div class="response-bars bars-{{ $question->answers->count() }}">
         @foreach($question->answers as $idx => $ans)
