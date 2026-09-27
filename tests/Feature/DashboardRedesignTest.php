@@ -63,6 +63,17 @@ class DashboardRedesignTest extends TestCase
         }
     }
 
+    public function test_pagination_renders_real_page_links(): void
+    {
+        $host = User::create(['name' => 'Host', 'email' => 'dash4@test.com', 'password' => 'secret-pass']);
+        for ($i = 0; $i < 21; $i++) {
+            Quiz::create(['user_id' => $host->id, 'title' => "Quiz {$i}"]);
+        }
+        $html = $this->actingAs($host)->get(route('dashboard'))->assertOk()->getContent();
+        $this->assertStringContainsString('class="pagination"', $html);
+        $this->assertMatchesRegularExpression('/<a[^>]*href="[^"]*page=2[^"]*"[^>]*>\s*2\s*<\/a>/', $html);
+    }
+
     public function test_delete_quiz_button_uses_data_confirm(): void
     {
         $host = User::create(['name' => 'Host', 'email' => 'dash3@test.com', 'password' => 'secret-pass']);

@@ -60,4 +60,17 @@ class LibraryRedesignTest extends TestCase
         $css = file_get_contents(public_path('css/app.css'));
         $this->assertStringContainsString('.pagination', $css);
     }
+
+    public function test_pagination_renders_real_page_links_and_preserves_query_string(): void
+    {
+        $host = User::create(['name' => 'Host', 'email' => 'libpage@test.com', 'password' => 'secret-pass']);
+        for ($i = 0; $i < 19; $i++) {
+            Quiz::create(['user_id' => $host->id, 'title' => "Public Quiz {$i}", 'is_public' => true, 'category' => 'Science']);
+        }
+        $html = $this->get(route('library', ['category' => 'Science']))->assertOk()->getContent();
+        $this->assertStringContainsString('class="pagination"', $html);
+        $this->assertMatchesRegularExpression('/<a[^>]*href="[^"]*page=2[^"]*"[^>]*>\s*2\s*<\/a>/', $html);
+        // withQueryString() must carry the category filter onto the page-2 link
+        $this->assertMatchesRegularExpression('/<a[^>]*href="[^"]*category=Science[^"]*page=2[^"]*"|<a[^>]*href="[^"]*page=2[^"]*category=Science[^"]*"/', $html);
+    }
 }

@@ -47,7 +47,7 @@
   @endif
 
   @if($quizzes->hasPages())
-    <div class="mt-3 d-flex justify-center">{{ $quizzes->links() }}</div>
+    <div class="mt-3 d-flex justify-center">{{ $quizzes->withQueryString()->links('pagination::default') }}</div>
   @endif
 
   @if($recentGames->isNotEmpty())

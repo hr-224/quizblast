@@ -57,7 +57,7 @@
           </a>
         @endforeach
       </div>
-      <div class="mt-3">{{ $quizzes->links() }}</div>
+      <div class="mt-3">{{ $quizzes->withQueryString()->links('pagination::default') }}</div>
     @endif
   </div>
 </div>
