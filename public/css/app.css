@@ -677,4 +677,21 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 /* rows glide from their previous position (set via --move by the page script); Calm shows them in place */
 @keyframes standings-move{from{transform:translateY(calc(var(--move,0) * 115%))}to{transform:none}}
 
+/* final results (reuses .suspense-*, .podium*, .leaderboard-* from the player screens, scaled for the projector) */
+.suspense-overlay.is-host .suspense-name{font-size:3rem;font-size:clamp(2.5rem,7vw,5rem)}
+.suspense-overlay.is-host .suspense-medal{font-size:6rem;font-size:clamp(5rem,15vw,10rem)}
+.host-final{max-width:820px;margin:0 auto;padding:2rem 1.5rem 3rem;text-align:center}
+.host-final .trophy{font-size:4rem;line-height:1;margin-bottom:.5rem}
+.host-final-title{font-size:2.2rem;margin-bottom:.25rem}
+.host-final .podium{gap:1.5rem;margin:2rem 0}
+.host-final .podium-col{flex:0 1 130px}
+.host-final .podium-name{font-size:1.05rem}
+.host-final .podium-block{font-size:2.6rem}
+.host-final .podium-1 .podium-block{height:200px}
+.host-final .podium-2 .podium-block{height:150px}
+.host-final .podium-3 .podium-block{height:120px}
+.podium-streak{font-size:.8rem;font-weight:700;color:var(--ans-amber);margin-bottom:.4rem}
+.host-final .card{text-align:left}
+.host-final-actions{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-top:1rem}
+
 /* === END HOST SCREENS === */
