@@ -19,7 +19,7 @@ php artisan reverb:start --host=127.0.0.1 --port=7001   # optional WebSocket ser
 ```
 
 - There is no `composer test` script; call phpunit directly.
-- `tests/Unit/` exists only so bare `phpunit` runs. Until the redesign's Phase 2 lands, `MobileImprovementsTest::test_join_page_uses_clamp_heading_and_condensed_footer` is a known stale failure.
+- `tests/Unit/` exists only so bare `phpunit` runs.
 - `phpunit.xml` forces `DB_CONNECTION=mysql` with database `kahoot_testing` (the dev `.env` uses `kahoot`). Tests use `RefreshDatabase`, so that database must exist and is wiped on each run. Broadcasting is set to `log`, so no Reverb is needed in tests.
 - Feature tests that POST typically call `withoutMiddleware(ValidateCsrfToken::class)` in `setUp`, and simulate a joined player by setting `session(['player_id_<PIN>' => $player->id])`.
 - `install/index.php` is a browser-based installer (locked by `install/.installed`); `setup.sh` is the headless equivalent; `deploy.sh` is specific to the `quizblast.ultmods.com` server.
