@@ -76,5 +76,7 @@ Route::get('/play/{pin}/spy', [PlayerController::class, 'spy'])->name('play.spy'
 Route::delete('/play/{pin}/kick/{player}', [PlayerController::class, 'kick'])->name('play.kick')->middleware('auth');
 
 // Polling API
-Route::get('/api/game/{pin}/state', [GameController::class, 'state'])->name('api.game.state')->middleware('throttle:60,1')->where('pin', '[0-9]{6}');
-Route::get('/api/game/{pin}/players', [GameController::class, 'players'])->name('api.game.players')->middleware('throttle:60,1')->where('pin', '[0-9]{6}');
+// 1000/min per IP: a school class behind one shared IP polls every 3-5s per device when
+// Reverb isn't connected; 60/min was exhausted by ~3-5 devices sharing that IP.
+Route::get('/api/game/{pin}/state', [GameController::class, 'state'])->name('api.game.state')->middleware('throttle:1000,1')->where('pin', '[0-9]{6}');
+Route::get('/api/game/{pin}/players', [GameController::class, 'players'])->name('api.game.players')->middleware('throttle:1000,1')->where('pin', '[0-9]{6}');
