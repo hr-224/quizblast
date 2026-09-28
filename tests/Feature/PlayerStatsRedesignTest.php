@@ -35,6 +35,18 @@ class PlayerStatsRedesignTest extends TestCase
         }
     }
 
+    /** A brand new account (all stat defaults, no games played) must render cleanly —
+     *  no division-by-zero, correct zero values, and the empty-state message. */
+    public function test_stats_page_renders_correctly_for_a_brand_new_account(): void
+    {
+        $user = User::create(['name' => 'Brand New', 'email' => 'brand-new@test.com', 'password' => 'secret-pass']);
+        $html = $this->actingAs($user)->get(route('player.stats'))->assertOk()->getContent();
+
+        foreach (['Brand New', 'brand-new@test.com', '0%', 'No games played yet'] as $needle) {
+            $this->assertStringContainsString($needle, $html, $needle);
+        }
+    }
+
     public function test_stats_page_lists_recent_games(): void
     {
         $user = $this->makeUser();
