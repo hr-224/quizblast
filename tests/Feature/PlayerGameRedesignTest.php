@@ -8,12 +8,13 @@ use Tests\TestCase;
 
 class PlayerGameRedesignTest extends TestCase
 {
-    use RefreshDatabase, MakesPlayerGame;
+    use MakesPlayerGame, RefreshDatabase;
 
     private function html(array $playerAttrs = []): string
     {
         ['game' => $game, 'player' => $player] = $this->makePlayerGame('question', '777001', $playerAttrs);
-        return $this->withSession(['player_id_' . $game->pin => $player->id])
+
+        return $this->withSession(['player_id_'.$game->pin => $player->id])
             ->get(route('play.game', $game->pin))->assertOk()->getContent();
     }
 
@@ -164,6 +165,22 @@ class PlayerGameRedesignTest extends TestCase
     public function test_a_touchstart_listener_enables_ios_active_states(): void
     {
         $this->assertStringContainsString("document.addEventListener('touchstart', function () {}, { passive: true });", $this->src());
+    }
+
+    /** The hardcoded 5-second reading phase is replaced by the server-driven answer_delay. */
+    public function test_reading_phase_length_is_server_driven_not_hardcoded(): void
+    {
+        $src = $this->src();
+        $this->assertStringNotContainsString('TOTAL = 5', $src);
+        $this->assertStringContainsString('data.delay_remaining', $src);
+    }
+
+    /** The delay is additive: the answer timer starts at the full server remaining time. */
+    public function test_answer_timer_starts_at_the_full_remaining_time_not_reduced_by_the_delay(): void
+    {
+        $src = $this->src();
+        $this->assertStringContainsString('startTimer(q.time_limit, data.time_remaining)', $src);
+        $this->assertStringNotContainsString('data.time_remaining - TOTAL', $src);
     }
 
     public function test_review_wrong_tiles_stay_readable_and_wrap_text_on_old_ios(): void

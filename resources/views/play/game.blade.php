@@ -391,8 +391,25 @@
     const overlay = document.getElementById('reading-overlay');
     const num     = document.getElementById('player-reading-num');
     const ring    = document.getElementById('player-ring');
-    const CIRC = 314, TOTAL = 5;
+    const CIRC = 314;
+    const TOTAL = Math.max(0, Math.ceil(data.delay_remaining || 0));
     let rc = TOTAL;
+
+    function reveal() {
+      setHidden(overlay, true);
+      QB.Audio.sfx.questionStart();
+      questionStartMs = Date.now();
+      document.body.classList.add('game-active');
+      renderAnswers(q.answers);
+      const submit = document.getElementById('submit-multi-btn');
+      setHidden(submit, !isMultiple);
+      submit.disabled = true;
+      updatePowerUpButtons();
+      setHidden(document.getElementById('player-tray'), false);
+      startTimer(q.time_limit, data.time_remaining);
+    }
+
+    if (TOTAL <= 0) { setHidden(overlay, true); reveal(); return; }
 
     setHidden(overlay, false);
     num.textContent = rc;
@@ -407,17 +424,7 @@
       ring.style.strokeDashoffset = String(CIRC * ((TOTAL - rc) / TOTAL));
       if (rc <= 0) {
         clearInterval(readInterval);
-        setHidden(overlay, true);
-        QB.Audio.sfx.questionStart();
-        questionStartMs = Date.now();
-        document.body.classList.add('game-active');
-        renderAnswers(q.answers);
-        const submit = document.getElementById('submit-multi-btn');
-        setHidden(submit, !isMultiple);
-        submit.disabled = true;
-        updatePowerUpButtons();
-        setHidden(document.getElementById('player-tray'), false);
-        startTimer(q.time_limit, data.time_remaining - TOTAL);
+        reveal();
       }
     }, 1000);
   }
