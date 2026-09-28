@@ -754,4 +754,12 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .account-type-btn.is-active{background:rgba(124,92,255,.16);border-color:var(--violet);color:var(--violet-text)}
 .account-type-hint{font-size:.85rem;color:var(--text-muted);background:rgba(255,255,255,.04);border-radius:var(--radius-sm);padding:.6rem .8rem;margin-bottom:1rem}
 
+.stats-hero{background:var(--ink-2);padding:2rem 0;border-bottom:1px solid var(--line)}
+.stats-summary{gap:.75rem}
+.stats-stat{padding:1.1rem}
+.stats-stat-val{font-family:var(--font-display);font-weight:800;font-size:1.8rem}
+.stats-stat-val.is-amber{color:var(--ans-amber)}
+.stats-stat-val.is-ok{color:var(--ok)}
+.stats-stat-val.is-cyan{color:var(--ans-cyan)}
+
 /* === END AUTH & SPECTATOR === */
