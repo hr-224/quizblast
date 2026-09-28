@@ -243,6 +243,25 @@ class AccountUnificationTest extends TestCase
         $this->assertSame(0, $user->total_score);
     }
 
+    /** Logging out invalidates the whole session — without care that wipes any
+     *  player_id_{pin} keys too, silently kicking a logged-in player out of a game
+     *  they're mid-way through just because they hit "log out". */
+    public function test_logout_preserves_the_players_game_seat(): void
+    {
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+        $user = \App\Models\User::create(['name' => 'Logout Player', 'email' => 'unify-logout-seat@test.com', 'password' => 'secret-pass']);
+        $host = \App\Models\User::create(['name' => 'Host', 'email' => 'unify-logout-seat-host@test.com', 'password' => 'secret-pass']);
+        $quiz = \App\Models\Quiz::create(['user_id' => $host->id, 'title' => 'Q']);
+        $game = \App\Models\Game::create(['quiz_id' => $quiz->id, 'user_id' => $host->id, 'pin' => '960012', 'status' => 'waiting', 'current_question' => 0]);
+
+        $this->actingAs($user)->post(route('play.join.post'), ['pin' => '960012', 'nickname' => 'LogoutSeat']);
+
+        $this->post(route('logout'));
+
+        $this->get(route('play.lobby', '960012'))->assertOk();
+    }
+
     public function test_navbar_has_no_player_account_session_branch(): void
     {
         $src = file_get_contents(resource_path('views/layouts/app.blade.php'));

@@ -32,9 +32,20 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        // A logged-in player mid-game has their seat tracked under player_id_{pin} in this
+        // same session. Invalidating the session for logout would silently kick them out of
+        // that game too, so carry those keys over into the fresh session.
+        $playerSeats = collect($request->session()->all())
+            ->filter(fn ($value, $key) => str_starts_with($key, 'player_id_'));
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        foreach ($playerSeats as $key => $value) {
+            $request->session()->put($key, $value);
+        }
+
         return redirect()->route('play.join');
     }
 }
