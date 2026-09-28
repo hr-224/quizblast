@@ -583,12 +583,6 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .response-label .ans-shape{font-size:1.2rem}
 .response-label.is-correct{color:var(--ans-amber)}
 
-/* 5-second reading overlay */
-.host-reading{position:fixed;top:0;right:0;bottom:0;left:0;z-index:900;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;padding:2rem;text-align:center}
-.host-reading-top{display:flex;align-items:center;gap:1rem}
-.host-reading-hint{font-size:.9rem;font-weight:700;color:var(--text-muted)}
-.host-reading-text{max-width:1000px;font-size:2rem;font-size:clamp(2rem,5vw,4rem);font-weight:800;line-height:1.2;overflow-wrap:anywhere;word-break:break-word}
-
 /* floating emoji reactions + auto-advance */
 .emoji-overlay{position:fixed;top:0;right:0;bottom:0;left:0;pointer-events:none;z-index:500;overflow:hidden}
 .emoji-float{position:absolute;bottom:10%;font-size:2.5rem;pointer-events:none;animation:emoji-float 2.5s ease-out forwards}
@@ -633,6 +627,9 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .podium-streak{font-size:.8rem;font-weight:700;color:var(--ans-amber);margin-bottom:.4rem}
 .host-final .card{text-align:left}
 .host-final-actions{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;margin-top:1rem}
+
+.hq-answers-wait{text-align:center;font-weight:700;color:var(--text-muted);padding:1rem 0}
+.timer-ring-delay .timer-ring-fill{stroke:var(--text-muted)}
 
 /* === END HOST SCREENS === */
 
@@ -744,5 +741,6 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .timer-ring-num-sm{font-size:1.4rem}
 .spec-question .timer-ring{width:72px;height:72px}
 .spec-question .timer-ring-fill{stroke-dasharray:201}
+.spec-answers-wait{text-align:center;font-weight:700;color:var(--text-muted);padding:1rem 0}
 
 /* === END AUTH & SPECTATOR === */

@@ -21,12 +21,13 @@ class SpectatorRedesignTest extends TestCase
         $question = Question::create(['quiz_id' => $quiz->id, 'question_text' => 'Q?', 'time_limit' => 20, 'points' => 1000, 'order' => 0]);
         Answer::create(['question_id' => $question->id, 'answer_text' => 'A', 'is_correct' => true, 'order' => 0]);
         Answer::create(['question_id' => $question->id, 'answer_text' => 'B', 'is_correct' => false, 'order' => 1]);
+
         return Game::create(['quiz_id' => $quiz->id, 'user_id' => $host->id, 'pin' => '960001', 'status' => $status, 'current_question' => 0, 'spectator_mode' => true]);
     }
 
     private function watchAs(Game $game): string
     {
-        return $this->withSession(['spectator_id_' . $game->pin => 1])->get(route('spectate.watch', $game->pin))->assertOk()->getContent();
+        return $this->withSession(['spectator_id_'.$game->pin => 1])->get(route('spectate.watch', $game->pin))->assertOk()->getContent();
     }
 
     private function src(): string
@@ -93,10 +94,24 @@ class SpectatorRedesignTest extends TestCase
         $this->assertStringNotContainsString('<b>bold</b>', $html);
     }
 
+    public function test_page_has_answer_delay_wait_message_and_responses_card_id(): void
+    {
+        $html = $this->watchAs($this->makeSpectatingGame());
+        $this->assertStringContainsString('id="spec-answers-wait"', $html);
+        $this->assertStringContainsString('id="spec-responses-card"', $html);
+    }
+
+    public function test_answer_delay_fields_are_wired_into_the_gating_logic(): void
+    {
+        $src = $this->src();
+        $this->assertStringContainsString('data.delay_remaining', $src);
+        $this->assertStringContainsString('q.answer_delay', $src);
+    }
+
     public function test_spectator_css_exists(): void
     {
         $css = file_get_contents(public_path('css/app.css'));
-        foreach (['.spec-answers', 'response-bars', 'response-col', 'response-bar', 'response-label'] as $needle) {
+        foreach (['.spec-answers', '.spec-answers-wait', 'response-bars', 'response-col', 'response-bar', 'response-label'] as $needle) {
             $this->assertStringContainsString($needle, $css, $needle);
         }
     }

@@ -41,9 +41,10 @@
       <h2 class="hq-text" id="spec-qtext">—</h2>
     </div>
 
+    <p class="spec-answers-wait hidden" id="spec-answers-wait">⏳ Answers appear in <span id="spec-delay-num">0</span>s</p>
     <div class="spec-answers" id="spec-answers"></div>
 
-    <div class="card mb-3">
+    <div class="card mb-3" id="spec-responses-card">
       <div class="response-chart-head">
         <span>Live responses</span>
         <span class="stat-chip"><span class="val" id="spec-answered">0</span> answered</span>
@@ -217,10 +218,26 @@
         setHidden(img, false); setHidden(media, false);
       }
 
-      renderAnswerTiles(q.answers, 'spec-answers', false);
-      renderAnswerBars(q.answers, {}, data.player_count);
-      document.getElementById('spec-answered').textContent = '0';
-      startTimer(q.time_limit, data.time_remaining);
+      const waitEl        = document.getElementById('spec-answers-wait');
+      const answersEl      = document.getElementById('spec-answers');
+      const responsesCard  = document.getElementById('spec-responses-card');
+      const delayLeft       = Math.max(0, Math.ceil(data.delay_remaining || 0));
+
+      if (delayLeft > 0) {
+        setHidden(waitEl, false);
+        setHidden(answersEl, true);
+        setHidden(responsesCard, true);
+        document.getElementById('spec-delay-num').textContent = delayLeft;
+        startTimer(q.answer_delay, data.delay_remaining);
+      } else {
+        setHidden(waitEl, true);
+        setHidden(answersEl, false);
+        setHidden(responsesCard, false);
+        renderAnswerTiles(q.answers, 'spec-answers', false);
+        renderAnswerBars(q.answers, {}, data.player_count);
+        document.getElementById('spec-answered').textContent = '0';
+        startTimer(q.time_limit, data.time_remaining);
+      }
       showState('question');
       return;
     }
