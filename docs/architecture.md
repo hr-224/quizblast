@@ -38,20 +38,19 @@ app/
 │   └── Middleware/
 │       └── Authenticate.php
 └── Models/
-    ├── User.php            # Host accounts
+    ├── User.php            # Accounts — host quizzes and/or track player stats
     ├── Quiz.php
     ├── Question.php
     ├── Answer.php
     ├── Game.php
     ├── GamePlayer.php
     ├── GameAnswer.php
-    ├── PlayerAccount.php   # Optional player accounts
     └── GameReaction.php
 
-database/migrations/        # 8 migration files (schema history)
+database/migrations/        # 13 migration files (schema history)
 resources/views/
 ├── layouts/                # app.blade.php, game.blade.php
-├── auth/                   # login, register, player-login, player-register
+├── auth/                   # login, register, player-stats
 ├── dashboard/
 ├── quizzes/                # create, edit
 ├── host/                   # lobby, question, final
@@ -80,7 +79,9 @@ tests/Feature/              # PHPUnit feature tests
 ### Core Tables
 
 ```
-users               — Host accounts (name, email, password)
+users               — Accounts (name, email, password, total_score, games_played, wins).
+                      One account type: any User can host quizzes and/or accrue player
+                      stats — there is no separate player-only account.
 quizzes             — Quiz metadata (title, description, category, is_public)
 questions           — Questions per quiz (text, time_limit, points, order)
 answers             — Answer options per question (text, is_correct, order)
@@ -90,7 +91,11 @@ answers             — Answer options per question (text, is_correct, order)
 
 ```
 games               — Live game instance (pin, status, current_question, quiz_id)
-game_players        — Players in a game (nickname, score, streak, power_ups JSON)
+game_players        — Players in a game (nickname, score, streak, power_ups JSON).
+                      user_id is nullable — set when the joining browser was logged
+                      in (any User, including a host playing their own game), null
+                      for anonymous PIN+nickname joins. stats_credited_at guards
+                      against crediting a User's lifetime stats more than once.
 game_answers        — Each player's answer per question (response_time_ms, points_earned)
 game_reactions      — Emoji reactions during a game
 ```
@@ -105,7 +110,6 @@ games.status:
 ### Optional Tables
 
 ```
-player_accounts     — Optional player identity (email, total_score, games_played, wins)
 sessions            — Laravel database session storage
 ```
 
