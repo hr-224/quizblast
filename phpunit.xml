@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
+         bootstrap="tests/bootstrap.php"
          colors="true"
 >
   <testsuites>
@@ -19,7 +19,8 @@
   </source>
   <php>
     <env name="APP_ENV"        value="testing"/>
-    <env name="APP_KEY"        value="***REMOVED***"/>
+    <!-- APP_KEY is intentionally not set here — tests/bootstrap.php generates a fresh
+         random one on every run so no static key is committed to the repo. -->
     <env name="DB_CONNECTION"  value="mysql"/>
     <env name="DB_DATABASE"    value="kahoot_testing"/>
     <env name="BCRYPT_ROUNDS"  value="4"/>
