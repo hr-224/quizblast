@@ -21,7 +21,7 @@ class DesignComponentsTest extends TestCase
             '.btn-outline', '.btn-white', '.btn-sm', '.btn-lg', '.btn-xl', '.btn-full', '.card',
             '.card-header', '.card-title', '.form-group', '.form-label', '.form-control', '.form-check',
             '.alert', '.alert-success', '.alert-error', '.alert-info', '.field-error', '.page-hero',
-            '.quiz-card', '.answer-block', '.leaderboard-item', '.stat-chip', '.timer-bar',
+            '.quiz-card', '.leaderboard-item', '.stat-chip',
             '.lobby-wrap', '.pu-card', '.review-verdict-card', '.game-topbar',
         ] as $selector) {
             $this->assertMatchesRegularExpression(

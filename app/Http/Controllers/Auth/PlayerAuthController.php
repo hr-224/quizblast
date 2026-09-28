@@ -9,11 +9,6 @@ use Illuminate\Support\Facades\Hash;
 
 class PlayerAuthController extends Controller
 {
-    public function showRegister()
-    {
-        return view('auth.player-register');
-    }
-
     public function register(Request $request)
     {
         $request->validate([
@@ -31,11 +26,6 @@ class PlayerAuthController extends Controller
         session(['player_account_id' => $account->id]);
 
         return redirect()->route('play.join')->with('success', 'Account created! Join a game to start tracking your stats.');
-    }
-
-    public function showLogin()
-    {
-        return view('auth.player-login');
     }
 
     public function login(Request $request)
