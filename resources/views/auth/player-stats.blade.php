@@ -5,10 +5,10 @@
 <div class="stats-hero">
   <div class="container page-head">
     <div>
-      <h1>{{ $account->name }}'s stats</h1>
-      <p class="text-muted">{{ $account->email }}</p>
+      <h1>{{ $user->name }}'s stats</h1>
+      <p class="text-muted">{{ $user->email }}</p>
     </div>
-    <form method="POST" action="{{ route('player.logout') }}" class="inline-form" data-confirm="Log out?">
+    <form method="POST" action="{{ route('logout') }}" class="inline-form" data-confirm="Log out?">
       @csrf
       <button type="submit" class="btn btn-outline btn-sm">Log out</button>
     </form>
@@ -19,19 +19,19 @@
   <div class="grid-4 mb-4 stats-summary">
     <div class="card text-center stats-stat">
       <div class="field-hint">Games played</div>
-      <div class="stats-stat-val">{{ $account->games_played }}</div>
+      <div class="stats-stat-val">{{ $user->games_played }}</div>
     </div>
     <div class="card text-center stats-stat">
       <div class="field-hint">Wins</div>
-      <div class="stats-stat-val is-amber">{{ $account->wins }}</div>
+      <div class="stats-stat-val is-amber">{{ $user->wins }}</div>
     </div>
     <div class="card text-center stats-stat">
       <div class="field-hint">Win rate</div>
-      <div class="stats-stat-val is-ok">{{ $account->win_rate }}</div>
+      <div class="stats-stat-val is-ok">{{ $user->win_rate }}</div>
     </div>
     <div class="card text-center stats-stat">
       <div class="field-hint">Total points</div>
-      <div class="stats-stat-val is-cyan">{{ number_format($account->total_score) }}</div>
+      <div class="stats-stat-val is-cyan">{{ number_format($user->total_score) }}</div>
     </div>
   </div>
 

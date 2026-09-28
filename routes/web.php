@@ -26,7 +26,6 @@ Route::get('/account/login', fn() => redirect()->route('login'))->name('player.l
 Route::post('/account/register', [PlayerAuthController::class, 'register']);
 Route::post('/account/login', [PlayerAuthController::class, 'login']);
 Route::post('/account/logout', [PlayerAuthController::class, 'logout'])->name('player.logout');
-Route::get('/account/stats', [PlayerAuthController::class, 'stats'])->name('player.stats');
 
 // Public Library
 Route::get('/library', [LibraryController::class, 'index'])->name('library');
@@ -36,6 +35,7 @@ Route::get('/library/{quiz}', [LibraryController::class, 'show'])->name('library
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard/history/{game}', [DashboardController::class, 'gameHistory'])->name('dashboard.history');
+    Route::get('/account/stats', [DashboardController::class, 'stats'])->name('player.stats');
 
     Route::resource('quizzes', QuizController::class);
     Route::get('/quizzes/{quiz}/embed', [QuizController::class, 'embed'])->name('quizzes.embed');

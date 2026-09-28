@@ -15,6 +15,14 @@ class DashboardController extends Controller
         return view('dashboard.index', compact('quizzes', 'recentGames'));
     }
 
+    public function stats(Request $request)
+    {
+        $user        = $request->user();
+        $recentGames = $user->getRecentGames();
+
+        return view('auth.player-stats', compact('user', 'recentGames'));
+    }
+
     public function gameHistory(Game $game)
     {
         if ($game->user_id !== auth()->id()) abort(403);
