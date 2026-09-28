@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/host/{game}/skip', [GameController::class, 'skip'])->name('game.skip');
     Route::get('/host/{game}/question', [GameController::class, 'showQuestion'])->name('game.question');
     Route::get('/host/{game}/final', [GameController::class, 'final'])->name('game.final');
+    Route::post('/host/{game}/release/{player}', [GameController::class, 'releasePlayer'])->name('game.release');
     Route::post('/host/{game}/end', [GameController::class, 'end'])->name('game.end');
 });
 

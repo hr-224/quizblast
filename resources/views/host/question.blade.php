@@ -24,6 +24,7 @@
 
 @section('topbar-right')
   <div class="host-actions">
+    <button type="button" class="btn btn-outline btn-sm" id="players-btn" aria-haspopup="dialog" aria-controls="players-panel">👥 Players</button>
     @if($reviewing && $isLast)
       <form method="POST" action="{{ route('game.next', $game) }}" id="next-form" class="inline-form">
         @csrf
@@ -46,6 +47,15 @@
 
 @section('content')
 <div id="emoji-overlay" class="emoji-overlay" aria-hidden="true"></div>
+
+<div id="players-panel" class="players-panel hidden" role="dialog" aria-label="Players">
+  <div class="players-panel-head">
+    <strong>Players</strong>
+    <button type="button" class="btn btn-outline btn-sm" id="players-close">Close</button>
+  </div>
+  <p class="players-panel-hint">If a player lost their connection and can't rejoin, tap "Let back in", then have them rejoin with their nickname within 5 minutes.</p>
+  <ul id="players-list" class="players-list"></ul>
+</div>
 
 <div class="host-question">
   <div class="hq-head">
@@ -190,6 +200,43 @@
     if (btn) btn.disabled = true;
     return true;
   }
+
+  // Players panel: lets the host release a player who lost their rejoin token.
+  (function () {
+    const panel = document.getElementById('players-panel');
+    const list  = document.getElementById('players-list');
+    const csrf  = '{{ csrf_token() }}';
+
+    async function load() {
+      list.textContent = '';
+      try {
+        const res  = await fetch('/api/game/' + pin + '/players', { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        data.players.forEach(p => {
+          const li   = document.createElement('li');
+          const name = document.createElement('span');
+          name.className = 'players-list-name';
+          name.textContent = p.nickname + ' · ' + Number(p.score).toLocaleString();
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'btn btn-outline btn-sm';
+          btn.textContent = 'Let back in';
+          btn.addEventListener('click', async () => {
+            btn.disabled = true;
+            const r = await fetch('/host/{{ $game->id }}/release/' + p.id, {
+              method: 'POST', headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+            });
+            btn.textContent = r.ok ? 'Ready — rejoin now' : 'Failed';
+          });
+          li.append(name, btn);
+          list.appendChild(li);
+        });
+      } catch (e) { list.textContent = 'Could not load players.'; }
+    }
+
+    document.getElementById('players-btn').addEventListener('click', () => { panel.classList.remove('hidden'); load(); });
+    document.getElementById('players-close').addEventListener('click', () => panel.classList.add('hidden'));
+  })();
 
   document.addEventListener('click', () => { QB.Audio.init(); QB.Audio.resume(); }, { once: true });
 

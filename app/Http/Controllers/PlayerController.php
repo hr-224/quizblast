@@ -63,7 +63,7 @@ class PlayerController extends Controller
                     ->first();
                 if ($existingPlayer) {
                     if (!$this->ownsPlayer($request, $existingPlayer)) {
-                        return back()->withErrors(['nickname' => 'That name is already in use in this game. If it\'s you, rejoin from the device you started on, or ask the host.'])->withInput();
+                        return back()->withErrors(['nickname' => 'That name is already in use in this game. If it\'s you, rejoin from the device you started on, or ask the host to let you back in.'])->withInput();
                     }
                     return $this->rejoinPlayer($existingPlayer, $activeGame);
                 }
@@ -90,9 +90,38 @@ class PlayerController extends Controller
         $player->load('game');
         broadcast(new PlayerJoined($player));
 
-        session(['player_id_' . $game->pin => $player->id]);
+        session(['player_id_' . $game->pin => $player->id, 'player_token_' . $game->pin => $player->rejoin_token]);
 
         return redirect()->route('play.lobby', $game->pin);
+    }
+
+    private bool $displaced = false;
+
+    /**
+     * The player id for this browser's session, or null. A session holding a rejoin token that no
+     * longer matches the row was displaced by a rejoin on another device. Sessions without a token
+     * (created before this existed) are accepted as before.
+     */
+    private function sessionPlayerId(string $pin): ?int
+    {
+        $id = session('player_id_' . $pin);
+        if (!$id) return null;
+
+        $sessionToken = session('player_token_' . $pin);
+        if ($sessionToken !== null) {
+            $current = GamePlayer::where('id', $id)->value('rejoin_token');
+            if (!$current || !hash_equals($current, (string) $sessionToken)) {
+                session()->forget(['player_id_' . $pin, 'player_token_' . $pin]);
+                $this->displaced = true;
+                return null;
+            }
+        }
+        return (int) $id;
+    }
+
+    private function sessionLostMessage(string $default): string
+    {
+        return $this->displaced ? 'You rejoined this game from another device, so this one was signed out.' : $default;
     }
 
     /** A returning player proves identity by rejoin token, linked account, or their live session. */
@@ -105,7 +134,10 @@ class PlayerController extends Controller
         if (auth()->check() && $player->user_id && $player->user_id === auth()->id()) {
             return true;
         }
-        return (int) session('player_id_' . $player->game->pin) === $player->id;
+        if ($player->rejoin_released_until && $player->rejoin_released_until->isFuture()) {
+            return true;
+        }
+        return $this->sessionPlayerId($player->game->pin) === $player->id;
     }
 
     private function rejoinPlayer(GamePlayer $player, Game $game)
@@ -113,7 +145,8 @@ class PlayerController extends Controller
         $player->update([
             'session_id'   => session()->getId(),
             'last_seen_at' => now(),
-            'rejoin_token' => Str::random(40), // rotate so an old/stolen token can't be replayed
+            'rejoin_token' => $token = Str::random(40), // rotate so an old/stolen token can't be replayed
+            'rejoin_released_until' => null,
             'user_id'      => $player->user_id ?? (auth()->check() ? auth()->id() : null),
         ]);
 
@@ -123,7 +156,7 @@ class PlayerController extends Controller
             ->whereNotIn('id', $answered)
             ->count();
 
-        session(['player_id_' . $game->pin => $player->id]);
+        session(['player_id_' . $game->pin => $player->id, 'player_token_' . $game->pin => $token]);
         session()->flash('rejoined', $missed);
 
         return redirect()->route('play.game', $game->pin);
@@ -132,10 +165,10 @@ class PlayerController extends Controller
     public function lobby(string $pin)
     {
         $game     = Game::where('pin', $pin)->firstOrFail();
-        $playerId = session('player_id_' . $pin);
+        $playerId = $this->sessionPlayerId($pin);
 
         if (!$playerId) {
-            return redirect()->route('play.join')->withErrors(['pin' => 'Session expired. Rejoin the game.']);
+            return redirect()->route('play.join')->withErrors(['pin' => $this->sessionLostMessage('Session expired. Rejoin the game.')]);
         }
 
         $player = GamePlayer::find($playerId);
@@ -158,8 +191,8 @@ class PlayerController extends Controller
         if ($game->status === 'finished') return redirect()->route('play.final', $pin);
         if ($game->status === 'waiting')  return redirect()->route('play.lobby', $pin);
 
-        $playerId = session('player_id_' . $pin);
-        if (!$playerId) return redirect()->route('play.join')->withErrors(['pin' => 'Session expired. Please rejoin.']);
+        $playerId = $this->sessionPlayerId($pin);
+        if (!$playerId) return redirect()->route('play.join')->withErrors(['pin' => $this->sessionLostMessage('Session expired. Please rejoin.')]);
 
         $player = GamePlayer::find($playerId);
         if (!$player) return redirect()->route('play.join')->withErrors(['pin' => 'Could not find your player record. Please rejoin.']);
@@ -178,7 +211,7 @@ class PlayerController extends Controller
         ]);
 
         $game     = Game::where('pin', $pin)->where('status', 'question')->firstOrFail();
-        $playerId = session('player_id_' . $pin);
+        $playerId = $this->sessionPlayerId($pin);
         if (!$playerId) return response()->json(['error' => 'Not in game'], 403);
 
         $player = GamePlayer::find($playerId);
@@ -292,7 +325,7 @@ class PlayerController extends Controller
     public function final(string $pin)
     {
         $game     = Game::where('pin', $pin)->with('quiz')->firstOrFail();
-        $playerId = session('player_id_' . $pin);
+        $playerId = $this->sessionPlayerId($pin);
 
         $player  = $playerId ? GamePlayer::find($playerId) : null;
         $players = $game->players()->where('is_spectator', false)->orderByDesc('score')->get();
@@ -370,7 +403,7 @@ class PlayerController extends Controller
 
     public function heartbeat(string $pin)
     {
-        $playerId = session('player_id_' . $pin);
+        $playerId = $this->sessionPlayerId($pin);
         if (!$playerId) return response()->json(['ok' => false]);
         $player = GamePlayer::find($playerId);
         if ($player) {
@@ -382,7 +415,7 @@ class PlayerController extends Controller
 
     public function leave(string $pin)
     {
-        $playerId = session('player_id_' . $pin);
+        $playerId = $this->sessionPlayerId($pin);
         if ($playerId) {
             $player = GamePlayer::find($playerId);
             if ($player) {
@@ -398,7 +431,7 @@ class PlayerController extends Controller
     public function react(Request $request, string $pin)
     {
         $request->validate(['emoji' => ['required', 'string', 'max:10']]);
-        $playerId = session('player_id_' . $pin);
+        $playerId = $this->sessionPlayerId($pin);
         if (!$playerId) return response()->json(['error' => 'Not in game'], 403);
         $player = GamePlayer::find($playerId);
         if (!$player) return response()->json(['error' => 'Player not found'], 403);
@@ -415,7 +448,7 @@ class PlayerController extends Controller
     public function usePowerUp(Request $request, string $pin)
     {
         $request->validate(['type' => ['required', 'string', 'in:double_points,fifty_fifty,spy'], 'question_id' => ['required','integer']]);
-        $playerId = session('player_id_' . $pin);
+        $playerId = $this->sessionPlayerId($pin);
         if (!$playerId) return response()->json(['error' => 'Not in game'], 403);
         $player = GamePlayer::find($playerId);
         if (!$player || !$player->hasPowerUp($request->type)) return response()->json(['error' => 'Power-up not available'], 400);
@@ -436,7 +469,7 @@ class PlayerController extends Controller
 
     public function spy(Request $request, string $pin)
     {
-        $playerId = session('player_id_' . $pin);
+        $playerId = $this->sessionPlayerId($pin);
         if (!$playerId) return response()->json(['error' => 'Not in game'], 403);
 
         $callingPlayer = GamePlayer::find($playerId);

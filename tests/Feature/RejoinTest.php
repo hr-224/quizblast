@@ -261,4 +261,154 @@ class RejoinTest extends TestCase
             ->assertOk()
             ->assertSee('name="rejoin_token"', false);
     }
+
+    // ── Host release (lost token) ────────────────────────────────────────────
+
+    /** @test */
+    public function host_can_release_a_player_and_they_rejoin_by_nickname_once(): void
+    {
+        ['host' => $host, 'player' => $player] = $this->makeGame();
+
+        $this->actingAs($host)->postJson("/host/{$player->game_id}/release/{$player->id}")
+            ->assertOk()->assertJson(['ok' => true]);
+        $this->assertTrue($player->fresh()->rejoin_released_until->isFuture());
+
+        auth()->logout();
+        $this->rejoin()->assertRedirect(route('play.game', '777001'));
+
+        $fresh = $player->fresh();
+        $this->assertNull($fresh->rejoin_released_until);
+        $this->assertNotSame('tok-original', $fresh->rejoin_token);
+
+        // Single use: a second bare-nickname attempt is refused again.
+        $this->flushSession();
+        $this->rejoin()->assertSessionHasErrors('nickname');
+    }
+
+    /** @test */
+    public function expired_release_does_not_let_a_bare_nickname_in(): void
+    {
+        ['player' => $player] = $this->makeGame();
+        $player->update(['rejoin_released_until' => now()->subMinute()]);
+
+        $this->rejoin()->assertSessionHasErrors('nickname');
+    }
+
+    /** @test */
+    public function only_the_games_host_can_release_a_player(): void
+    {
+        ['player' => $player] = $this->makeGame();
+        $other = User::create(['name' => 'Eve', 'email' => 'eve@test.com', 'password' => bcrypt('pw')]);
+
+        $this->actingAs($other)->postJson("/host/{$player->game_id}/release/{$player->id}")->assertForbidden();
+        $this->assertNull($player->fresh()->rejoin_released_until);
+    }
+
+    /** @test */
+    public function release_rejects_a_player_from_another_game(): void
+    {
+        ['host' => $host, 'quiz' => $quiz, 'player' => $player] = $this->makeGame();
+        $otherGame = Game::create([
+            'quiz_id' => $quiz->id, 'user_id' => $host->id, 'pin' => '777002',
+            'status' => 'question', 'current_question' => 0,
+        ]);
+
+        $this->actingAs($host)->postJson("/host/{$otherGame->id}/release/{$player->id}")->assertNotFound();
+    }
+
+    /** @test */
+    public function the_name_taken_error_points_players_at_the_host(): void
+    {
+        $this->makeGame();
+
+        $this->rejoin()->assertSessionHasErrors(['nickname' => 'That name is already in use in this game. If it\'s you, rejoin from the device you started on, or ask the host to let you back in.']);
+    }
+
+    // ── Displaced sessions ──────────────────────────────────────────────────
+
+    /** @test */
+    public function a_displaced_session_cannot_answer(): void
+    {
+        ['player' => $player, 'questions' => $qs] = $this->makeGame();
+
+        $this->withSession([
+            'player_id_777001'    => $player->id,
+            'player_token_777001' => 'tok-stale',
+        ])->postJson('/play/777001/answer', [
+            'answer_ids' => [$qs[2]->answers()->first()->id],
+            'question_id' => $qs[2]->id,
+            'response_time_ms' => 1000,
+        ])->assertForbidden();
+    }
+
+    /** @test */
+    public function a_displaced_session_is_sent_back_to_the_join_form(): void
+    {
+        ['player' => $player] = $this->makeGame();
+
+        $this->withSession([
+            'player_id_777001'    => $player->id,
+            'player_token_777001' => 'tok-stale',
+        ])->get('/play/777001/game')
+            ->assertRedirect(route('play.join'))
+            ->assertSessionHasErrors('pin');
+    }
+
+    /** @test */
+    public function a_session_with_the_current_token_keeps_working(): void
+    {
+        ['player' => $player] = $this->makeGame();
+
+        $this->withSession([
+            'player_id_777001'    => $player->id,
+            'player_token_777001' => 'tok-original',
+        ])->get('/play/777001/game')->assertOk();
+    }
+
+    /** @test */
+    public function legacy_sessions_without_a_token_key_keep_working(): void
+    {
+        ['player' => $player] = $this->makeGame();
+
+        $this->withSession(['player_id_777001' => $player->id])
+            ->postJson('/play/777001/heartbeat')->assertJson(['ok' => true]);
+    }
+
+    /** @test */
+    public function rejoining_displaces_the_previous_devices_session(): void
+    {
+        ['player' => $player] = $this->makeGame();
+
+        // Device B rejoins with the token; it rotates.
+        $this->rejoin(['rejoin_token' => 'tok-original'])->assertRedirect();
+        $this->assertSame($player->fresh()->rejoin_token, session('player_token_777001'));
+
+        // Device A still holds the old session token and is now locked out.
+        $this->flushSession();
+        $this->withSession([
+            'player_id_777001'    => $player->id,
+            'player_token_777001' => 'tok-original',
+        ])->postJson('/play/777001/heartbeat')->assertJson(['ok' => false]);
+    }
+
+    /** @test */
+    public function joining_sets_the_session_token(): void
+    {
+        $this->makeGame('waiting');
+
+        $this->post('/play/join', ['pin' => '777001', 'nickname' => 'Bob'])->assertRedirect();
+
+        $this->assertSame(GamePlayer::where('nickname', 'Bob')->value('rejoin_token'), session('player_token_777001'));
+    }
+
+    /** @test */
+    public function host_question_page_has_the_players_panel(): void
+    {
+        ['host' => $host, 'game' => $game] = $this->makeGame();
+
+        $this->actingAs($host)->get("/host/{$game->id}/question")
+            ->assertOk()
+            ->assertSee('id="players-panel"', false)
+            ->assertSee('Let back in');
+    }
 }

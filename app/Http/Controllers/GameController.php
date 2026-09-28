@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Events\GameStateChanged;
 use App\Models\Game;
+use App\Models\GamePlayer;
 use App\Models\Quiz;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -178,6 +179,19 @@ class GameController extends Controller
         broadcast(new GameStateChanged($game->fresh()));
 
         return redirect()->route('dashboard')->with('success', 'Game ended.');
+    }
+
+    /** Lets a player whose rejoin token was lost back in by nickname, once, within 5 minutes. */
+    public function releasePlayer(Game $game, GamePlayer $player)
+    {
+        if ($game->user_id !== auth()->id()) {
+            abort(403);
+        }
+        abort_unless($player->game_id === $game->id, 404);
+
+        $player->update(['rejoin_released_until' => now()->addMinutes(5)]);
+
+        return response()->json(['ok' => true]);
     }
 
     // ── API ──────────────────────────────────────────────────────────────────
