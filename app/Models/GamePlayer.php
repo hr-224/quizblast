@@ -9,7 +9,7 @@ class GamePlayer extends Model
 {
     protected $fillable = [
         'game_id','nickname','score','session_id','last_seen_at',
-        'team','streak','best_streak','power_ups','is_spectator','player_account_id'
+        'team','streak','best_streak','power_ups','is_spectator','user_id'
     ];
 
     protected $casts = [
@@ -28,9 +28,9 @@ class GamePlayer extends Model
         return $this->hasMany(GameAnswer::class);
     }
 
-    public function playerAccount()
+    public function user()
     {
-        return $this->belongsTo(PlayerAccount::class);
+        return $this->belongsTo(User::class);
     }
 
     public function getAvailablePowerUps(): array
