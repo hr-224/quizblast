@@ -722,10 +722,6 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .auth-sub{text-align:center;color:var(--text-muted);margin-bottom:1.5rem}
 .auth-footer{text-align:center;margin-top:1.25rem;color:var(--text-muted);font-size:.9rem}
 .auth-footer a{font-weight:700}
-.account-type-toggle{display:flex;gap:.5rem;margin-bottom:1.25rem}
-.account-type-btn{flex:1;padding:.6rem .5rem;background:rgba(255,255,255,.06);border:1px solid var(--line-strong);border-radius:var(--radius-sm);color:var(--text-muted);font-family:var(--font-display);font-weight:700;font-size:.85rem;cursor:pointer;transition:var(--transition);text-align:center}
-.account-type-btn.is-active{background:rgba(124,92,255,.16);border-color:var(--violet);color:var(--violet-text)}
-.account-type-hint{font-size:.85rem;color:var(--text-muted);background:rgba(255,255,255,.04);border-radius:var(--radius-sm);padding:.6rem .8rem;margin-bottom:1rem}
 
 .stats-hero{background:var(--ink-2);padding:2rem 0;border-bottom:1px solid var(--line)}
 .stats-summary{gap:.75rem}

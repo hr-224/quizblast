@@ -19,12 +19,12 @@ class AuthPagesRedesignTest extends TestCase
         }
     }
 
-    public function test_register_page_has_both_account_types_and_the_type_toggle(): void
+    public function test_register_page_has_the_signup_fields(): void
     {
         $html = $this->get(route('register'))->assertOk()->getContent();
         foreach ([
-            'name="account_type"', 'name="name"', 'name="email"', 'name="password"', 'name="password_confirmation"',
-            'data-type="player"', 'data-type="host"', 'action="' . route('register') . '"', route('login'),
+            'name="name"', 'name="email"', 'name="password"', 'name="password_confirmation"',
+            'action="' . route('register') . '"', route('login'),
         ] as $needle) {
             $this->assertStringContainsString($needle, $html, $needle);
         }
@@ -52,22 +52,12 @@ class AuthPagesRedesignTest extends TestCase
         }
     }
 
-    public function test_register_type_toggle_script_avoids_optional_chaining_and_a_global_event_read(): void
-    {
-        $src = $this->src('auth/register.blade.php');
-        $this->assertStringNotContainsString('?.', $src);
-        $this->assertStringNotContainsString('??', $src);
-        $this->assertStringNotContainsString('event.currentTarget', $src);   // the old code relied on the implicit global `event`
-    }
-
     public function test_auth_css_exists(): void
     {
         $css = file_get_contents(public_path('css/app.css'));
-        foreach ([
-            '9. AUTH & SPECTATOR', 'END AUTH & SPECTATOR', '.auth-page', '.auth-card', '.account-type-toggle',
-            '.account-type-btn', '.is-active', '.account-type-hint',
-        ] as $needle) {
+        foreach (['9. AUTH & SPECTATOR', 'END AUTH & SPECTATOR', '.auth-page', '.auth-card'] as $needle) {
             $this->assertStringContainsString($needle, $css, $needle);
         }
+        $this->assertStringNotContainsString('.account-type-toggle', $css);
     }
 }

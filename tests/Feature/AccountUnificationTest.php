@@ -57,4 +57,28 @@ class AccountUnificationTest extends TestCase
 
         $this->assertTrue($gp->user->is($user));
     }
+
+    public function test_registering_always_creates_a_user_and_logs_them_in(): void
+    {
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+        $response = $this->post(route('register'), [
+            'name' => 'New Person', 'email' => 'unify-register@test.com',
+            'password' => 'password123', 'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticated();
+        $this->assertDatabaseHas('users', ['email' => 'unify-register@test.com']);
+        $this->assertDatabaseCount('users', 1);
+    }
+
+    public function test_register_page_has_no_account_type_toggle(): void
+    {
+        $html = $this->get(route('register'))->assertOk()->getContent();
+        $this->assertStringNotContainsString('account_type', $html);
+        $this->assertStringNotContainsString('account-type-toggle', $html);
+        $this->assertStringNotContainsString('data-type="player"', $html);
+        $this->assertStringNotContainsString('data-type="host"', $html);
+    }
 }
