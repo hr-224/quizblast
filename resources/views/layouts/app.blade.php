@@ -19,22 +19,15 @@
       @auth
         <a href="{{ route('dashboard') }}" class="nav-link">Dashboard</a>
         <a href="{{ route('quizzes.create') }}" class="nav-link">New Quiz</a>
+        <a href="{{ route('player.stats') }}" class="nav-link">My Stats</a>
         <form method="POST" action="{{ route('logout') }}" class="inline-form">
           @csrf
           <button type="submit" class="btn btn-outline btn-sm">Log out</button>
         </form>
       @else
         <a href="{{ route('play.join') }}" class="nav-link">Join Game</a>
-        @if(session('player_account_id'))
-          <a href="{{ route('player.stats') }}" class="nav-link">My Stats</a>
-          <form method="POST" action="{{ route('player.logout') }}" class="inline-form">
-            @csrf
-            <button type="submit" class="btn btn-outline btn-sm">Log out</button>
-          </form>
-        @else
-          <a href="{{ route('login') }}" class="nav-link">Sign In</a>
-          <a href="{{ route('register') }}" class="btn btn-white btn-sm">Sign Up</a>
-        @endif
+        <a href="{{ route('login') }}" class="nav-link">Sign In</a>
+        <a href="{{ route('register') }}" class="btn btn-white btn-sm">Sign Up</a>
       @endauth
     </div>{{-- /.navbar-nav #nav-links --}}
     @include('partials.ui-toggles')
@@ -45,22 +38,15 @@
     @auth
       <a href="{{ route('dashboard') }}" class="nav-dropdown-link">Dashboard</a>
       <a href="{{ route('quizzes.create') }}" class="nav-dropdown-link">New Quiz</a>
+      <a href="{{ route('player.stats') }}" class="nav-dropdown-link">My Stats</a>
       <form method="POST" action="{{ route('logout') }}">
         @csrf
         <button type="submit" class="nav-dropdown-link nav-dropdown-btn">Log out</button>
       </form>
     @else
       <a href="{{ route('play.join') }}" class="nav-dropdown-link">Join Game</a>
-      @if(session('player_account_id'))
-        <a href="{{ route('player.stats') }}" class="nav-dropdown-link">My Stats</a>
-        <form method="POST" action="{{ route('player.logout') }}">
-          @csrf
-          <button type="submit" class="nav-dropdown-link nav-dropdown-btn">Log out</button>
-        </form>
-      @else
-        <a href="{{ route('login') }}" class="nav-dropdown-link">Sign In</a>
-        <a href="{{ route('register') }}" class="nav-dropdown-link nav-dropdown-link-accent">Sign Up</a>
-      @endif
+      <a href="{{ route('login') }}" class="nav-dropdown-link">Sign In</a>
+      <a href="{{ route('register') }}" class="nav-dropdown-link nav-dropdown-link-accent">Sign Up</a>
     @endauth
   </div>
 </nav>

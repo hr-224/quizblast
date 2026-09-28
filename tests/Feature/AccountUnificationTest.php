@@ -148,4 +148,27 @@ class AccountUnificationTest extends TestCase
         $this->assertSame(1, $user->games_played);
         $this->assertSame(500, $user->total_score);
     }
+
+    public function test_navbar_has_no_player_account_session_branch(): void
+    {
+        $src = file_get_contents(resource_path('views/layouts/app.blade.php'));
+        $this->assertStringNotContainsString("session('player_account_id')", $src);
+    }
+
+    public function test_guest_navbar_shows_sign_in_and_sign_up(): void
+    {
+        $html = $this->get(route('landing'))->getContent();
+        $this->assertStringContainsString('Sign In', $html);
+        $this->assertStringContainsString('Sign Up', $html);
+        $this->assertStringNotContainsString('My Stats', $html);
+    }
+
+    public function test_authed_navbar_shows_dashboard_and_my_stats(): void
+    {
+        $user = \App\Models\User::create(['name' => 'Nav User', 'email' => 'unify-nav@test.com', 'password' => 'secret-pass']);
+        $html = $this->actingAs($user)->get(route('landing'))->getContent();
+        $this->assertStringContainsString('Dashboard', $html);
+        $this->assertStringContainsString('My Stats', $html);
+        $this->assertStringNotContainsString('Sign Up', $html);
+    }
 }
