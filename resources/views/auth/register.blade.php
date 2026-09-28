@@ -12,8 +12,8 @@
       <input type="hidden" name="account_type" id="account_type" value="{{ old('account_type', 'player') }}" />
 
       <div class="account-type-toggle">
-        <button type="button" class="account-type-btn {{ old('account_type', 'player') === 'player' ? 'is-active' : '' }}" data-type="player">🎮 Player</button>
-        <button type="button" class="account-type-btn {{ old('account_type') === 'host' ? 'is-active' : '' }}" data-type="host">🎤 Host</button>
+        <button type="button" class="account-type-btn {{ old('account_type', 'player') === 'player' ? 'is-active' : '' }}" data-type="player" aria-pressed="{{ old('account_type', 'player') === 'player' ? 'true' : 'false' }}">🎮 Player</button>
+        <button type="button" class="account-type-btn {{ old('account_type') === 'host' ? 'is-active' : '' }}" data-type="host" aria-pressed="{{ old('account_type') === 'host' ? 'true' : 'false' }}">🎤 Host</button>
       </div>
 
       <p class="account-type-hint" id="type-hint-player" @if(old('account_type') === 'host') hidden @endif>Track your stats and game history across all QuizBlast games.</p>
@@ -58,7 +58,10 @@
     btn.addEventListener('click', () => {
       const type = btn.dataset.type;
       typeInput.value = type;
-      document.querySelectorAll('.account-type-btn').forEach(b => b.classList.toggle('is-active', b === btn));
+      document.querySelectorAll('.account-type-btn').forEach(b => {
+        b.classList.toggle('is-active', b === btn);
+        b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
+      });
       hintPlayer.hidden = type !== 'player';
       hintHost.hidden = type !== 'host';
     });
