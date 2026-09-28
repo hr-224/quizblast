@@ -139,6 +139,46 @@ class AccountUnificationTest extends TestCase
         $this->assertDatabaseHas('game_players', ['game_id' => $game->id, 'nickname' => 'HostAsPlayer', 'user_id' => $host->id]);
     }
 
+    /** Traces self-play all the way through answering and finishing, not just the join
+     *  redirect — confirms there's no conflict between a User being both games.user_id
+     *  (host) and game_players.user_id (player) on the same game. */
+    public function test_self_play_end_to_end_credits_stats_after_answering(): void
+    {
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+        $host     = \App\Models\User::create(['name' => 'Self Play Host', 'email' => 'unify-selfplay-e2e@test.com', 'password' => 'secret-pass']);
+        $quiz     = \App\Models\Quiz::create(['user_id' => $host->id, 'title' => 'Q']);
+        $question = \App\Models\Question::create(['quiz_id' => $quiz->id, 'question_text' => 'Q1?', 'time_limit' => 20, 'points' => 1000, 'order' => 0]);
+        $correct  = \App\Models\Answer::create(['question_id' => $question->id, 'answer_text' => 'Right', 'is_correct' => true, 'order' => 0]);
+        \App\Models\Answer::create(['question_id' => $question->id, 'answer_text' => 'Wrong', 'is_correct' => false, 'order' => 1]);
+        $game = \App\Models\Game::create(['quiz_id' => $quiz->id, 'user_id' => $host->id, 'pin' => '960010', 'status' => 'waiting', 'current_question' => 0]);
+
+        $this->actingAs($host)->post(route('play.join.post'), ['pin' => '960010', 'nickname' => 'HostPlaying']);
+        $gp = \App\Models\GamePlayer::where('game_id', $game->id)->where('nickname', 'HostPlaying')->firstOrFail();
+        $this->assertSame($host->id, $gp->user_id);
+
+        $game->update(['status' => 'question']);
+        $answerResponse = $this->actingAs($host)->postJson('/play/960010/answer', [
+            'answer_ids'       => [$correct->id],
+            'question_id'      => $question->id,
+            'response_time_ms' => 3000,
+        ]);
+        $answerResponse->assertOk()->assertJson(['correct' => true]);
+        $pointsEarned = $answerResponse->json('points_earned');
+        $this->assertGreaterThan(0, $pointsEarned);
+
+        $gp->refresh();
+        $this->assertSame($pointsEarned, $gp->score);
+
+        $game->update(['status' => 'finished']);
+        $this->actingAs($host)->withSession(['player_id_960010' => $gp->id])->get(route('play.final', '960010'));
+
+        $host->refresh();
+        $this->assertSame(1, $host->games_played);
+        $this->assertSame($pointsEarned, $host->total_score);
+        $this->assertSame(1, $host->wins);
+    }
+
     public function test_anonymous_join_still_leaves_user_id_null(): void
     {
         $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
