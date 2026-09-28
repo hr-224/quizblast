@@ -5,6 +5,7 @@
   $isLast    = $game->current_question + 1 >= $questions->count();
   $reviewing = $game->status === 'reviewing';
   $remaining = $game->timeRemaining();
+  $delayRemaining = $game->delayRemaining();
   // A multi-correct question writes one GameAnswer row per selected answer, so $totalAnswered
   // (a row count) can exceed the real player count; count distinct players instead.
   $distinctAnswered = $game->gameAnswers()->where('question_id', $question->id)
@@ -44,38 +45,17 @@
 @endsection
 
 @section('content')
-@if(! $reviewing)
-{{-- 5-second reading overlay (players are reading on their phones) --}}
-<div id="reading-overlay" class="host-reading hidden">
-  <div class="host-reading-top">
-    <span class="stat-chip">Q <span class="val">{{ $game->current_question + 1 }}</span>/{{ $questions->count() }}</span>
-    <span class="host-reading-hint">Players are reading the question</span>
-  </div>
-  @if($question->image_url)
-    <img class="hq-media" src="{{ $question->image_url }}" alt="" />
-  @endif
-  <h1 class="host-reading-text">{{ $question->question_text }}</h1>
-  <div class="ring">
-    <svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
-      <circle class="ring-track" cx="60" cy="60" r="50"/>
-      <circle id="reading-ring" class="ring-fill" cx="60" cy="60" r="50"/>
-    </svg>
-    <div id="reading-num" class="ring-num">5</div>
-  </div>
-</div>
-@endif
-
 <div id="emoji-overlay" class="emoji-overlay" aria-hidden="true"></div>
 
 <div class="host-question">
   <div class="hq-head">
     @if(! $reviewing)
-      <div class="timer-ring" id="timer-ring" role="timer" aria-label="Time remaining">
+      <div class="timer-ring{{ $delayRemaining > 0 ? ' timer-ring-delay' : '' }}" id="timer-ring" role="timer" aria-label="{{ $delayRemaining > 0 ? 'Time until answers appear' : 'Time remaining' }}">
         <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
           <circle class="timer-ring-track" cx="48" cy="48" r="44"/>
-          <circle id="timer-ring-fill" class="timer-ring-fill" cx="48" cy="48" r="44" stroke-dashoffset="{{ round(276 * (1 - min(1, $remaining / max(1, $question->time_limit)))) }}"/>
+          <circle id="timer-ring-fill" class="timer-ring-fill" cx="48" cy="48" r="44" stroke-dashoffset="{{ $delayRemaining > 0 ? round(276 * (1 - min(1, $delayRemaining / max(1, $question->answer_delay)))) : round(276 * (1 - min(1, $remaining / max(1, $question->time_limit)))) }}"/>
         </svg>
-        <div class="timer-ring-num" id="timer-num">{{ $remaining }}</div>
+        <div class="timer-ring-num" id="timer-num">{{ $delayRemaining > 0 ? $delayRemaining : $remaining }}</div>
       </div>
     @else
       <div class="revealed-badge">✅ Answers revealed!</div>
@@ -117,7 +97,10 @@
     </div>
   @endif
 
-  <div class="hq-answers">
+  @if(! $reviewing)
+    <p class="hq-answers-wait{{ $delayRemaining > 0 ? '' : ' hidden' }}" id="answers-wait-msg">⏳ Answers appear in <span id="delay-num">{{ $delayRemaining }}</span>s</p>
+  @endif
+  <div class="hq-answers{{ !$reviewing && $delayRemaining > 0 ? ' hidden' : '' }}" id="hq-answers">
     @foreach($question->answers as $idx => $ans)
       <div class="ans-tile host-tile is-locked ans-{{ $idx % 4 }}{{ $reviewing ? ($ans->is_correct ? ' is-correct' : ' is-wrong') : '' }}">
         <x-answer-shape :index="$idx" />
@@ -192,6 +175,8 @@
   const totalPlayers = {{ $totalPlayers }};
   const CIRC         = 276;
   let   timeLeft     = {{ $remaining }};
+  const answerDelay   = {{ $question->answer_delay }};
+  let   delayLeft      = {{ $delayRemaining }};
   let   revealed     = {{ $reviewing ? 'true' : 'false' }};
   let   lastBeep     = Math.ceil(timeLeft);
   let   submitting   = false;
@@ -251,10 +236,18 @@
   }
 
   // Timer — driven by the server's remaining time at page load, independent of Reverb.
-  const timerNum  = document.getElementById('timer-num');
-  const timerFill = document.getElementById('timer-ring-fill');
-  const timerRing = document.getElementById('timer-ring');
-  if (!revealed && timerNum) {
+  // Two phases: while delayLeft > 0, answer tiles stay hidden and the ring counts down the
+  // delay; once it hits 0, the tiles are revealed and the ring switches to the answer timer.
+  const timerNum       = document.getElementById('timer-num');
+  const timerFill      = document.getElementById('timer-ring-fill');
+  const timerRing      = document.getElementById('timer-ring');
+  const answersWaitMsg = document.getElementById('answers-wait-msg');
+  const hqAnswers      = document.getElementById('hq-answers');
+  const delayNumEl     = document.getElementById('delay-num');
+  const DELAY_CIRC     = 276;
+
+  function startAnswerTimer() {
+    if (revealed || !timerNum) return;
     const tick = setInterval(() => {
       timeLeft = Math.max(0, timeLeft - 1);
       const ceil = Math.ceil(timeLeft);
@@ -269,6 +262,30 @@
         submitReveal();
       }
     }, 1000);
+  }
+
+  function revealAnswerTiles() {
+    if (answersWaitMsg) answersWaitMsg.classList.add('hidden');
+    if (hqAnswers) hqAnswers.classList.remove('hidden');
+    if (timerRing) { timerRing.classList.remove('timer-ring-delay'); timerRing.setAttribute('aria-label', 'Time remaining'); }
+    startAnswerTimer();
+  }
+
+  if (!revealed && delayLeft > 0) {
+    const delayTick = setInterval(() => {
+      delayLeft = Math.max(0, delayLeft - 1);
+      const ceil = Math.ceil(delayLeft);
+      const pct  = Math.min(1, delayLeft / answerDelay);
+      if (timerNum)   timerNum.textContent = ceil;
+      if (timerFill)  timerFill.style.strokeDashoffset = String(Math.round(DELAY_CIRC * (1 - pct)));
+      if (delayNumEl) delayNumEl.textContent = ceil;
+      if (delayLeft <= 0) {
+        clearInterval(delayTick);
+        revealAnswerTiles();
+      }
+    }, 1000);
+  } else if (!revealed) {
+    startAnswerTimer();
   }
 
   // Live events over Reverb, loaded asynchronously so a slow/blocked CDN can never hold
@@ -320,36 +337,6 @@
       }
     }, 1000);
     setTimeout(() => { fill.style.width = '0%'; }, 50);
-  }
-
-  // 5-second reading phase on a fresh question load (not on refresh; works without sessionStorage)
-  const readingOverlay = document.getElementById('reading-overlay');
-  if (readingOverlay) {
-    const key = 'qb_read_q_{{ $game->id }}_{{ $game->current_question }}';
-    let seen = false;
-    try {
-      seen = !!window.sessionStorage.getItem(key);
-      window.sessionStorage.setItem(key, '1');
-    } catch (e) {}
-    if (!seen) {
-      const numEl = document.getElementById('reading-num');
-      const ring  = document.getElementById('reading-ring');
-      const TOTAL = 5, RCIRC = 314;
-      let count = TOTAL;
-      readingOverlay.classList.remove('hidden');
-      ring.style.transition = 'none';
-      ring.style.strokeDashoffset = '0';
-      setTimeout(() => { ring.style.transition = 'stroke-dashoffset 1s linear'; }, 30);
-      const iv = setInterval(() => {
-        count--;
-        numEl.textContent = count;
-        ring.style.strokeDashoffset = String(RCIRC * ((TOTAL - count) / TOTAL));
-        if (count <= 0) {
-          clearInterval(iv);
-          readingOverlay.classList.add('hidden');
-        }
-      }, 1000);
-    }
   }
 })();
 </script>

@@ -2,18 +2,53 @@
 
 namespace Tests\Feature;
 
+use App\Models\Answer;
+use App\Models\Game;
+use App\Models\Question;
+use App\Models\Quiz;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\Concerns\MakesHostGame;
 use Tests\Concerns\MakesPlayerGame;
 use Tests\TestCase;
 
 class HostQuestionRedesignTest extends TestCase
 {
-    use RefreshDatabase, MakesHostGame, MakesPlayerGame;
+    use MakesHostGame, MakesPlayerGame, RefreshDatabase;
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
+    }
 
     private function html(string $status, int $questions = 2): string
     {
         ['host' => $host, 'game' => $game] = $this->makeHostGame($status, $questions, 2);
+
+        return $this->actingAs($host)->get(route('game.question', $game))->assertOk()->getContent();
+    }
+
+    /** Builds a single-question host game with a controlled answer_delay and elapsed time. */
+    private function htmlWithDelay(int $answerDelay, int $elapsedSeconds): string
+    {
+        Carbon::setTestNow(Carbon::now()->startOfSecond());
+        $host = User::create(['name' => 'Host', 'email' => 'delayhost'.uniqid().'@test.com', 'password' => 'secret-pass']);
+        $quiz = Quiz::create(['user_id' => $host->id, 'title' => 'Delay Quiz']);
+        $question = Question::create([
+            'quiz_id' => $quiz->id, 'question_text' => 'Delay Q?',
+            'time_limit' => 20, 'answer_delay' => $answerDelay, 'points' => 1000, 'order' => 0,
+        ]);
+        foreach ([['Alpha', true], ['Bravo', false]] as $a => [$text, $correct]) {
+            Answer::create(['question_id' => $question->id, 'answer_text' => $text, 'is_correct' => $correct, 'order' => $a]);
+        }
+        $game = Game::create([
+            'quiz_id' => $quiz->id, 'user_id' => $host->id, 'pin' => (string) random_int(100000, 999999),
+            'status' => 'question', 'current_question' => 0,
+            'question_started_at' => now()->subSeconds($elapsedSeconds),
+        ]);
+
         return $this->actingAs($host)->get(route('game.question', $game))->assertOk()->getContent();
     }
 
@@ -25,6 +60,7 @@ class HostQuestionRedesignTest extends TestCase
     private function script(): string
     {
         preg_match('/<script>\s*\(function.*?<\/script>/s', $this->src(), $m);
+
         return $m[0] ?? '';
     }
 
@@ -32,8 +68,8 @@ class HostQuestionRedesignTest extends TestCase
     {
         $html = $this->html('question');
         foreach ([
-            'id="timer-ring"', 'id="timer-ring-fill"', 'id="timer-num"', 'id="reading-overlay"', 'id="reading-ring"',
-            'id="reading-num"', 'id="reveal-form"', 'id="reveal-btn"', 'id="answered-count"', 'id="emoji-overlay"',
+            'id="timer-ring"', 'id="timer-ring-fill"', 'id="timer-num"',
+            'id="reveal-form"', 'id="reveal-btn"', 'id="answered-count"', 'id="emoji-overlay"',
             'data-confirm="Skip this question?"', 'Question number 0?', 'Alpha', 'Bravo', 'Charlie', 'Delta',
         ] as $needle) {
             $this->assertStringContainsString($needle, $html, $needle);
@@ -94,7 +130,7 @@ class HostQuestionRedesignTest extends TestCase
         $this->assertStringNotContainsString('??', $js);
         $this->assertStringNotContainsString('createControls', $this->src());
         $this->assertStringNotContainsString('host-countdown', $this->src());   // 3-2-1 overlay was hidden under the reading overlay
-        $this->assertStringContainsString("spy:", $js);                          // power-up label for Spy
+        $this->assertStringContainsString('spy:', $js);                          // power-up label for Spy
     }
 
     /** Review focus 1: no Pusher must not break the timer/reveal. */
@@ -106,12 +142,17 @@ class HostQuestionRedesignTest extends TestCase
         $this->assertLessThan(strpos($js, 'new Pusher'), strpos($js, 'setInterval'), 'timer must be started before Pusher is touched');
     }
 
-    /** Review focus 3: refresh mid-question works without sessionStorage. */
-    public function test_reading_overlay_survives_blocked_session_storage(): void
+    /**
+     * The old 5-second reading overlay used a sessionStorage "have we shown this already" hack
+     * to survive a mid-question refresh. The new answer_delay gating is driven entirely by the
+     * server's elapsed-time calculation (delay_remaining), so it survives a refresh for free and
+     * no longer needs sessionStorage at all.
+     */
+    public function test_answer_delay_gating_survives_refresh_without_session_storage(): void
     {
         $js = $this->script();
-        $this->assertMatchesRegularExpression('/try\s*\{[^}]*sessionStorage/s', $js);
-        $this->assertStringContainsString("classList.remove('hidden')", $js);
+        $this->assertStringNotContainsString('sessionStorage', $js);
+        $this->assertStringContainsString('delayLeft', $js);
     }
 
     public function test_reveal_is_submitted_at_most_once(): void
@@ -125,7 +166,7 @@ class HostQuestionRedesignTest extends TestCase
     public function test_skip_confirmation_is_a_data_attribute_handled_in_script(): void
     {
         $js = $this->script();
-        $this->assertStringContainsString("form[data-confirm]", $js);
+        $this->assertStringContainsString('form[data-confirm]', $js);
         $this->assertStringContainsString('window.confirm', $js);
     }
 
@@ -188,12 +229,36 @@ class HostQuestionRedesignTest extends TestCase
         $this->assertStringContainsString('.review-answers .ans-tile.is-wrong{opacity:.55}', $css);
     }
 
+    public function test_answer_tiles_are_hidden_and_wait_message_shown_while_the_delay_has_not_elapsed(): void
+    {
+        $html = $this->htmlWithDelay(answerDelay: 10, elapsedSeconds: 3);
+
+        $this->assertStringContainsString('<div class="hq-answers hidden" id="hq-answers"', $html);
+        $this->assertStringContainsString('<p class="hq-answers-wait" id="answers-wait-msg"', $html);
+    }
+
+    public function test_answer_tiles_are_visible_and_wait_message_hidden_once_the_delay_has_elapsed(): void
+    {
+        $html = $this->htmlWithDelay(answerDelay: 0, elapsedSeconds: 0);
+
+        $this->assertStringContainsString('<div class="hq-answers" id="hq-answers"', $html);
+        $this->assertStringContainsString('<p class="hq-answers-wait hidden" id="answers-wait-msg"', $html);
+    }
+
+    public function test_old_reading_overlay_and_session_storage_key_are_gone(): void
+    {
+        $src = $this->src();
+        $this->assertStringNotContainsString('qb_read_q_', $src);
+        $this->assertStringNotContainsString('id="reading-overlay"', $src);
+    }
+
     public function test_question_css_exists(): void
     {
         $css = file_get_contents(public_path('css/app.css'));
         foreach ([
             '.host-question', '.timer-ring', '.timer-ring-fill', '.is-urgent', '.revealed-badge', '.hq-card', '.hq-text',
-            '.hq-answers', '.host-tile', '.response-chart', '.response-bars', '.bars-4', '.response-bar', '.host-reading',
+            '.hq-answers', '.host-tile', '.response-chart', '.response-bars', '.bars-4', '.response-bar',
+            '.hq-answers-wait', '.timer-ring-delay',
             '.progress-dot', '.host-actions', '.emoji-overlay', '.emoji-float', '.autoadvance-fill', '.autoadvance-msg',
             '@keyframes emoji-float', '@keyframes pulse-num',
         ] as $needle) {
