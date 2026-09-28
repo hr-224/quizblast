@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\PlayerAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\GameController;
@@ -23,9 +22,6 @@ Route::post('/register', [RegisterController::class, 'register']);
 // Player Accounts — legacy redirects keep old URLs working
 Route::get('/account/register', fn() => redirect()->route('register'))->name('player.register');
 Route::get('/account/login', fn() => redirect()->route('login'))->name('player.login');
-Route::post('/account/register', [PlayerAuthController::class, 'register']);
-Route::post('/account/login', [PlayerAuthController::class, 'login']);
-Route::post('/account/logout', [PlayerAuthController::class, 'logout'])->name('player.logout');
 
 // Public Library
 Route::get('/library', [LibraryController::class, 'index'])->name('library');
