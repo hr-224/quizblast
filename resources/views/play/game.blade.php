@@ -395,6 +395,8 @@
     const TOTAL = Math.max(0, Math.ceil(data.delay_remaining || 0));
     let rc = TOTAL;
 
+    clearInterval(readInterval);
+
     function reveal() {
       setHidden(overlay, true);
       QB.Audio.sfx.questionStart();
@@ -417,7 +419,6 @@
     ring.style.strokeDashoffset = '0';
     setTimeout(() => { ring.style.transition = 'stroke-dashoffset 1s linear'; }, 30);
 
-    clearInterval(readInterval);
     readInterval = setInterval(() => {
       rc--;
       num.textContent = rc;

@@ -93,6 +93,7 @@
   let timerInterval = null;
   let timeLeft = 0;
   let timeLimit = 0;
+  let delayRevealTimeout = null;
   const RING_CIRC = 201;   // 2 * pi * r=32, matching .timer-ring-fill's stroke-dasharray below
 
   function setHidden(el, hidden) { if (el) el.classList.toggle('hidden', !!hidden); }
@@ -197,8 +198,25 @@
     });
   }
 
+  // Reveals the answer tiles/response chart and starts the answer timer. Called either
+  // immediately (delay already elapsed) or by a locally-scheduled timeout — the live Reverb
+  // push only fires once per question, so without this local timeout a spectator connected
+  // over a real socket would never see the delay end (handleState would never run again).
+  function revealSpecAnswers(q, data) {
+    const waitEl       = document.getElementById('spec-answers-wait');
+    const answersEl     = document.getElementById('spec-answers');
+    const responsesCard = document.getElementById('spec-responses-card');
+    setHidden(waitEl, true);
+    setHidden(answersEl, false);
+    setHidden(responsesCard, false);
+    renderAnswerTiles(q.answers, 'spec-answers', false);
+    renderAnswerBars(q.answers, {}, data.player_count);
+    document.getElementById('spec-answered').textContent = '0';
+    startTimer(q.time_limit, data.time_remaining);
+  }
+
   function handleState(data) {
-    if (data.status === 'waiting') { showState('waiting'); return; }
+    if (data.status === 'waiting') { clearTimeout(delayRevealTimeout); showState('waiting'); return; }
 
     if (data.status === 'question' && data.question) {
       const q = data.question;
@@ -209,40 +227,40 @@
       const img = document.getElementById('spec-img');
       const vid = document.getElementById('spec-video');
       const yt = document.getElementById('spec-yt');
-      setHidden(img, true); setHidden(vid, true); setHidden(media, true);
       if (q.youtube_id) {
-        yt.src = `https://www.youtube.com/embed/${q.youtube_id}?mute=1`;
-        setHidden(vid, false); setHidden(media, false);
+        // Only reassign src when the video actually changes — repeated polls otherwise
+        // restart the embed every few seconds, defeating the point of a video delay.
+        if (yt.dataset.qid !== String(q.youtube_id)) {
+          yt.src = `https://www.youtube.com/embed/${q.youtube_id}?mute=1`;
+          yt.dataset.qid = String(q.youtube_id);
+        }
+        setHidden(img, true); setHidden(vid, false); setHidden(media, false);
       } else if (q.image_url) {
         img.src = q.image_url;
-        setHidden(img, false); setHidden(media, false);
+        setHidden(img, false); setHidden(vid, true); setHidden(media, false);
+      } else {
+        setHidden(img, true); setHidden(vid, true); setHidden(media, true);
       }
 
-      const waitEl        = document.getElementById('spec-answers-wait');
-      const answersEl      = document.getElementById('spec-answers');
-      const responsesCard  = document.getElementById('spec-responses-card');
-      const delayLeft       = Math.max(0, Math.ceil(data.delay_remaining || 0));
+      clearTimeout(delayRevealTimeout);
+      const delayLeft = Math.max(0, Math.ceil(data.delay_remaining || 0));
 
       if (delayLeft > 0) {
-        setHidden(waitEl, false);
-        setHidden(answersEl, true);
-        setHidden(responsesCard, true);
+        setHidden(document.getElementById('spec-answers-wait'), false);
+        setHidden(document.getElementById('spec-answers'), true);
+        setHidden(document.getElementById('spec-responses-card'), true);
         document.getElementById('spec-delay-num').textContent = delayLeft;
         startTimer(q.answer_delay, data.delay_remaining);
+        delayRevealTimeout = setTimeout(() => revealSpecAnswers(q, data), delayLeft * 1000);
       } else {
-        setHidden(waitEl, true);
-        setHidden(answersEl, false);
-        setHidden(responsesCard, false);
-        renderAnswerTiles(q.answers, 'spec-answers', false);
-        renderAnswerBars(q.answers, {}, data.player_count);
-        document.getElementById('spec-answered').textContent = '0';
-        startTimer(q.time_limit, data.time_remaining);
+        revealSpecAnswers(q, data);
       }
       showState('question');
       return;
     }
 
     if (data.status === 'reviewing' && data.question) {
+      clearTimeout(delayRevealTimeout);
       clearInterval(timerInterval);
       renderAnswerTiles(data.question.answers, 'spec-review-answers', true);
       if (data.leaderboard) renderLeaderboard(data.leaderboard, 'spec-review-lb');
@@ -251,6 +269,7 @@
     }
 
     if (data.status === 'finished') {
+      clearTimeout(delayRevealTimeout);
       clearInterval(timerInterval);
       if (data.leaderboard) renderLeaderboard(data.leaderboard, 'spec-final-lb');
       showState('finished');

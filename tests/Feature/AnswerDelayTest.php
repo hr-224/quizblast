@@ -106,6 +106,27 @@ class AnswerDelayTest extends TestCase
         $this->assertSame(0, $game->delayRemaining());
     }
 
+    public function test_delay_remaining_is_not_shortened_by_sub_second_elapsed_time(): void
+    {
+        // question_started_at is stored with whole-second precision (the datetime cast/
+        // column drops microseconds), but a real "now" mid-request keeps sub-second
+        // precision. Without ceil() in Game::delayRemaining(), that fractional elapsed time
+        // truncates toward zero and can under-report the delay by up to a full second.
+        Carbon::setTestNow(Carbon::now()->startOfSecond());
+        $host = User::create(['name' => 'Host', 'email' => 'subsecond'.uniqid().'@test.com', 'password' => 'secret-pass']);
+        $quiz = Quiz::create(['user_id' => $host->id, 'title' => 'Delay Quiz']);
+        Question::create(['quiz_id' => $quiz->id, 'question_text' => 'Q?', 'time_limit' => 20, 'answer_delay' => 5, 'points' => 1000, 'order' => 0]);
+        $game = Game::create([
+            'quiz_id' => $quiz->id, 'user_id' => $host->id, 'pin' => (string) random_int(100000, 999999),
+            'status' => 'question', 'current_question' => 0, 'question_started_at' => now(),
+        ])->fresh();
+
+        // Advance the frozen clock 600ms within the same whole second the question started.
+        Carbon::setTestNow(Carbon::now()->addMilliseconds(600));
+
+        $this->assertSame(5, $game->delayRemaining());
+    }
+
     // ── GameController::state() ─────────────────────────────────────────
 
     public function test_state_endpoint_mid_delay_reports_full_time_and_positive_delay_remaining(): void

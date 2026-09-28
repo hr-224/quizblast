@@ -50,7 +50,7 @@ class Game extends Model
             return $question->time_limit;
         }
 
-        return max(0, $question->time_limit - $sinceAnswersVisible);
+        return max(0, (int) ceil($question->time_limit - $sinceAnswersVisible));
     }
 
     public function delayRemaining(): int
@@ -64,6 +64,6 @@ class Game extends Model
         }
         $elapsed = $this->question_started_at->diffInSeconds(now(), false);
 
-        return max(0, $question->answer_delay - $elapsed);
+        return max(0, (int) ceil($question->answer_delay - $elapsed));
     }
 }
