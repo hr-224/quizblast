@@ -31,10 +31,13 @@ class PlayerJoinRedesignTest extends TestCase
         $this->assertStringContainsString('/js/join-bg.js', $html);
     }
 
-    public function test_keeps_kicked_notice_and_host_signup_link(): void
+    public function test_keeps_kicked_notice_and_unified_signup_link(): void
     {
         $this->get(route('play.join') . '?kicked=1')->assertSee('You were kicked from the game.');
-        $this->assertStringContainsString('Create a host account', $this->html());
+        $this->assertStringContainsString('Create an account', $this->html());
+        // Player and host accounts share one signup form now — no separate "Player account" link.
+        $this->assertStringNotContainsString('Player account', $this->html());
+        $this->assertStringNotContainsString(route('player.register'), $this->html());
     }
 
     public function test_join_view_has_no_inline_styles(): void

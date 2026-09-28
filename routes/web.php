@@ -11,7 +11,7 @@ use App\Http\Controllers\LibraryController;
 use App\Http\Controllers\SpectatorController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () { return redirect()->route('play.join'); });
+Route::get('/', function () { return view('landing'); })->name('landing');
 
 // Host Auth
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');

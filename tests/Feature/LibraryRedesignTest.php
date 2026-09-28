@@ -43,8 +43,18 @@ class LibraryRedesignTest extends TestCase
     {
         $quiz = $this->makePublicQuiz();
         $html = $this->get(route('library.show', $quiz))->assertOk()->getContent();
-        $this->assertStringContainsString('class="ans-chip is-correct"', $html);
+        $this->assertStringContainsString('class="ans-chip"', $html);
         $this->assertStringContainsString('&lt;b&gt;bold&lt;/b&gt;', $html);
+    }
+
+    /** Anyone can view a public quiz's preview without joining or hosting it — the correct
+     *  answer must never be marked here, or players could cheat by browsing the library first. */
+    public function test_library_show_does_not_reveal_the_correct_answer(): void
+    {
+        $quiz = $this->makePublicQuiz();
+        $html = $this->get(route('library.show', $quiz))->assertOk()->getContent();
+        $this->assertStringNotContainsString('is-correct', $html);
+        $this->assertStringNotContainsString('✓', $html);
     }
 
     public function test_no_inline_styles_on_library_views(): void

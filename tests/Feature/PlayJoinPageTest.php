@@ -39,10 +39,11 @@ class PlayJoinPageTest extends TestCase
         $response->assertSee('You were kicked from the game.');
     }
 
-    public function test_join_page_has_host_account_link(): void
+    public function test_join_page_has_unified_account_link(): void
     {
         $response = $this->get(route('play.join'));
-        $response->assertSee('Create a host account');
+        $response->assertSee('Create an account');
+        $response->assertDontSee('Player account');
     }
 
     public function test_join_page_uses_the_shared_shell(): void

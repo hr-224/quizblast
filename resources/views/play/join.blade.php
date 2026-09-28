@@ -1,10 +1,7 @@
-@extends('layouts.app')
+@extends('layouts.app', ['fxBg' => true])
 @section('title', 'Join a Game')
 
 @section('content')
-<div class="join-static" aria-hidden="true"></div>
-<canvas id="join-bg" class="join-bg fx-party" aria-hidden="true"></canvas>
-
 <div class="join-page">
   <div class="join-card slide-up">
 
@@ -40,20 +37,16 @@
       <button type="submit" class="btn btn-primary btn-lg btn-full">Join game</button>
     </form>
 
-    <div class="join-footer">
-      <span>Want to host? <a href="{{ route('register') }}">Create a host account</a></span>
-      @if(!session('player_account_id'))
-        <span class="sep">·</span>
-        <a href="{{ route('player.register') }}">Player account</a>
-      @endif
-    </div>
+    @unless(auth()->check() || session('player_account_id'))
+      <div class="join-footer">
+        <span>Want to host, or save your stats? <a href="{{ route('register') }}">Create an account</a></span>
+      </div>
+    @endunless
   </div>
 </div>
 @endsection
 
 @push('scripts')
-<script src="/js/shapes.js?v={{ filemtime(public_path('js/shapes.js')) }}"></script>
-<script src="/js/join-bg.js?v={{ filemtime(public_path('js/join-bg.js')) }}"></script>
 <script>
 (function () {
   var pin = document.getElementById('join-pin');

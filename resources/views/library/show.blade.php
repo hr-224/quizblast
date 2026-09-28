@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app', ['fxBg' => true])
 @section('title', $quiz->title)
 
 @section('content')
@@ -31,7 +31,7 @@
           <div class="q-card-text">{{ $question->question_text }}</div>
           <div class="q-card-chips">
             @foreach($question->answers as $ans)
-              <x-answer-chip :text="$ans->answer_text" :correct="$ans->is_correct" />
+              <x-answer-chip :text="$ans->answer_text" />
             @endforeach
           </div>
         </div>
