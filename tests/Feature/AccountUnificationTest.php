@@ -171,4 +171,29 @@ class AccountUnificationTest extends TestCase
         $this->assertStringContainsString('My Stats', $html);
         $this->assertStringNotContainsString('Sign Up', $html);
     }
+
+    public function test_no_view_reads_the_old_player_account_session_key(): void
+    {
+        $views = [
+            'play/final.blade.php',
+            'play/join.blade.php',
+        ];
+        foreach ($views as $view) {
+            $src = file_get_contents(resource_path('views/' . $view));
+            $this->assertStringNotContainsString("session('player_account_id')", $src, $view);
+        }
+    }
+
+    public function test_final_page_shows_my_stats_link_for_logged_in_user(): void
+    {
+        $user = \App\Models\User::create(['name' => 'Final User', 'email' => 'unify-final-view@test.com', 'password' => 'secret-pass']);
+        $quiz = \App\Models\Quiz::create(['user_id' => $user->id, 'title' => 'Q']);
+        $game = \App\Models\Game::create(['quiz_id' => $quiz->id, 'user_id' => $user->id, 'pin' => '960007', 'status' => 'finished', 'current_question' => 0]);
+        $gp   = \App\Models\GamePlayer::create(['game_id' => $game->id, 'nickname' => 'FinalNick', 'score' => 10, 'streak' => 0, 'best_streak' => 0, 'user_id' => $user->id]);
+
+        $html = $this->actingAs($user)->withSession(['player_id_960007' => $gp->id])->get(route('play.final', '960007'))->getContent();
+
+        $this->assertStringContainsString('My stats', $html);
+        $this->assertStringNotContainsString('Save stats', $html);
+    }
 }

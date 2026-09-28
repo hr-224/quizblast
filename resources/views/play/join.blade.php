@@ -37,7 +37,7 @@
       <button type="submit" class="btn btn-primary btn-lg btn-full">Join game</button>
     </form>
 
-    @unless(auth()->check() || session('player_account_id'))
+    @unless(auth()->check())
       <div class="join-footer">
         <span>Want to host, or save your stats? <a href="{{ route('register') }}">Create an account</a></span>
       </div>

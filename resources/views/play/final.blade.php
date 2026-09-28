@@ -116,8 +116,8 @@
 
   <div class="result-actions">
     <a href="{{ route('play.join') }}" class="btn btn-success btn-lg">Play again</a>
-    @if(!session('player_account_id'))
-      <a href="{{ route('player.register') }}" class="btn btn-outline btn-lg">Save stats</a>
+    @if(!auth()->check())
+      <a href="{{ route('register') }}" class="btn btn-outline btn-lg">Save stats</a>
     @else
       <a href="{{ route('player.stats') }}" class="btn btn-outline btn-lg">My stats</a>
     @endif
