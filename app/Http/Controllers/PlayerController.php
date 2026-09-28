@@ -307,11 +307,18 @@ class PlayerController extends Controller
             ];
         }
 
-        if ($player && $player->user) {
-            $isWinner = $rank === 1;
-            $player->user->increment('games_played');
-            $player->user->increment('total_score', $player->score);
-            if ($isWinner) $player->user->increment('wins');
+        if ($player && $player->user && $game->status === 'finished') {
+            // Reloading this page (refresh, back button, a stale tab) must not credit stats
+            // again. Claim the credit with a single conditional UPDATE — only the request that
+            // flips stats_credited_at from null actually increments, so concurrent reloads and
+            // repeat visits are both safe.
+            $claimed = GamePlayer::where('id', $player->id)->whereNull('stats_credited_at')->update(['stats_credited_at' => now()]);
+            if ($claimed) {
+                $isWinner = $rank === 1;
+                $player->user->increment('games_played');
+                $player->user->increment('total_score', $player->score);
+                if ($isWinner) $player->user->increment('wins');
+            }
         }
 
         return view('play.final', compact('game', 'player', 'players', 'rank', 'personalStats'));

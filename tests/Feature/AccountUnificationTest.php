@@ -149,6 +149,40 @@ class AccountUnificationTest extends TestCase
         $this->assertSame(500, $user->total_score);
     }
 
+    /** Refreshing/revisiting the results page must not credit lifetime stats twice. */
+    public function test_reloading_the_final_page_only_credits_stats_once(): void
+    {
+        $user = \App\Models\User::create(['name' => 'Reloader', 'email' => 'unify-final-reload@test.com', 'password' => 'secret-pass']);
+        $host = \App\Models\User::create(['name' => 'Host', 'email' => 'unify-final-reload-host@test.com', 'password' => 'secret-pass']);
+        $quiz = \App\Models\Quiz::create(['user_id' => $host->id, 'title' => 'Q']);
+        $game = \App\Models\Game::create(['quiz_id' => $quiz->id, 'user_id' => $host->id, 'pin' => '960008', 'status' => 'finished', 'current_question' => 0]);
+        $gp   = \App\Models\GamePlayer::create(['game_id' => $game->id, 'nickname' => 'Reloader1', 'score' => 500, 'streak' => 0, 'best_streak' => 0, 'user_id' => $user->id]);
+
+        $this->withSession(['player_id_960008' => $gp->id])->get(route('play.final', '960008'));
+        $this->withSession(['player_id_960008' => $gp->id])->get(route('play.final', '960008'));
+        $this->withSession(['player_id_960008' => $gp->id])->get(route('play.final', '960008'));
+
+        $user->refresh();
+        $this->assertSame(1, $user->games_played);
+        $this->assertSame(500, $user->total_score);
+    }
+
+    /** Opening the results URL mid-game (before the host has finished it) must not credit stats early. */
+    public function test_viewing_final_page_before_the_game_is_finished_does_not_credit_stats(): void
+    {
+        $user = \App\Models\User::create(['name' => 'EarlyPeek', 'email' => 'unify-final-early@test.com', 'password' => 'secret-pass']);
+        $host = \App\Models\User::create(['name' => 'Host', 'email' => 'unify-final-early-host@test.com', 'password' => 'secret-pass']);
+        $quiz = \App\Models\Quiz::create(['user_id' => $host->id, 'title' => 'Q']);
+        $game = \App\Models\Game::create(['quiz_id' => $quiz->id, 'user_id' => $host->id, 'pin' => '960009', 'status' => 'question', 'current_question' => 0]);
+        $gp   = \App\Models\GamePlayer::create(['game_id' => $game->id, 'nickname' => 'EarlyPeek1', 'score' => 500, 'streak' => 0, 'best_streak' => 0, 'user_id' => $user->id]);
+
+        $this->withSession(['player_id_960009' => $gp->id])->get(route('play.final', '960009'));
+
+        $user->refresh();
+        $this->assertSame(0, $user->games_played);
+        $this->assertSame(0, $user->total_score);
+    }
+
     public function test_navbar_has_no_player_account_session_branch(): void
     {
         $src = file_get_contents(resource_path('views/layouts/app.blade.php'));

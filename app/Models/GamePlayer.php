@@ -9,13 +9,14 @@ class GamePlayer extends Model
 {
     protected $fillable = [
         'game_id','nickname','score','session_id','last_seen_at',
-        'team','streak','best_streak','power_ups','is_spectator','user_id'
+        'team','streak','best_streak','power_ups','is_spectator','user_id','stats_credited_at'
     ];
 
     protected $casts = [
-        'power_ups'   => 'array',
-        'is_spectator'=> 'boolean',
-        'last_seen_at'=> 'datetime',
+        'power_ups'         => 'array',
+        'is_spectator'      => 'boolean',
+        'last_seen_at'      => 'datetime',
+        'stats_credited_at' => 'datetime',
     ];
 
     public function game()
