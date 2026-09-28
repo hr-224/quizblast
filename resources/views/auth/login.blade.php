@@ -5,7 +5,7 @@
 <div class="auth-page">
   <div class="auth-card slide-up">
     <h1 class="auth-title">Welcome back</h1>
-    <p class="auth-sub">Sign in to your host or player account</p>
+    <p class="auth-sub">Sign in to your account</p>
 
     <form method="POST" action="{{ route('login') }}">
       @csrf

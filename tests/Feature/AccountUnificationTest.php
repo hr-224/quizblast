@@ -81,4 +81,16 @@ class AccountUnificationTest extends TestCase
         $this->assertStringNotContainsString('data-type="player"', $html);
         $this->assertStringNotContainsString('data-type="host"', $html);
     }
+
+    public function test_login_is_a_single_path_with_no_player_account_fallback(): void
+    {
+        $src = file_get_contents(app_path('Http/Controllers/Auth/LoginController.php'));
+        $this->assertStringNotContainsString('PlayerAccount', $src);
+    }
+
+    public function test_login_page_copy_no_longer_mentions_two_account_types(): void
+    {
+        $html = $this->get(route('login'))->assertOk()->getContent();
+        $this->assertStringNotContainsString('host or player account', $html);
+    }
 }
