@@ -93,4 +93,44 @@ class AccountUnificationTest extends TestCase
         $html = $this->get(route('login'))->assertOk()->getContent();
         $this->assertStringNotContainsString('host or player account', $html);
     }
+
+    public function test_logged_in_user_joining_a_game_links_their_account(): void
+    {
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+        $user = \App\Models\User::create(['name' => 'Joiner', 'email' => 'unify-join@test.com', 'password' => 'secret-pass']);
+        $quiz = \App\Models\Quiz::create(['user_id' => $user->id, 'title' => 'Q']);
+        $game = \App\Models\Game::create(['quiz_id' => $quiz->id, 'user_id' => $user->id, 'pin' => '960003', 'status' => 'waiting', 'current_question' => 0]);
+
+        $this->actingAs($user)->post(route('play.join.post'), ['pin' => '960003', 'nickname' => 'JoinerNick']);
+
+        $this->assertDatabaseHas('game_players', ['game_id' => $game->id, 'nickname' => 'JoinerNick', 'user_id' => $user->id]);
+    }
+
+    public function test_a_host_can_join_and_play_their_own_hosted_game(): void
+    {
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+        $host = \App\Models\User::create(['name' => 'Self Host', 'email' => 'unify-selfplay@test.com', 'password' => 'secret-pass']);
+        $quiz = \App\Models\Quiz::create(['user_id' => $host->id, 'title' => 'Q']);
+        $game = \App\Models\Game::create(['quiz_id' => $quiz->id, 'user_id' => $host->id, 'pin' => '960004', 'status' => 'waiting', 'current_question' => 0]);
+
+        $response = $this->actingAs($host)->post(route('play.join.post'), ['pin' => '960004', 'nickname' => 'HostAsPlayer']);
+
+        $response->assertRedirect(route('play.lobby', '960004'));
+        $this->assertDatabaseHas('game_players', ['game_id' => $game->id, 'nickname' => 'HostAsPlayer', 'user_id' => $host->id]);
+    }
+
+    public function test_anonymous_join_still_leaves_user_id_null(): void
+    {
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+        $host = \App\Models\User::create(['name' => 'Host', 'email' => 'unify-anon@test.com', 'password' => 'secret-pass']);
+        $quiz = \App\Models\Quiz::create(['user_id' => $host->id, 'title' => 'Q']);
+        $game = \App\Models\Game::create(['quiz_id' => $quiz->id, 'user_id' => $host->id, 'pin' => '960005', 'status' => 'waiting', 'current_question' => 0]);
+
+        $this->post(route('play.join.post'), ['pin' => '960005', 'nickname' => 'Guest']);
+
+        $this->assertDatabaseHas('game_players', ['game_id' => $game->id, 'nickname' => 'Guest', 'user_id' => null]);
+    }
 }

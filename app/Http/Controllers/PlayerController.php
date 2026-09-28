@@ -71,15 +71,13 @@ class PlayerController extends Controller
             return back()->withErrors(['nickname' => 'That nickname is already taken in this game.'])->withInput();
         }
 
-        $playerAccountId = session('player_account_id');
-
         $player = $game->players()->create([
-            'nickname'          => $request->nickname,
-            'score'             => 0,
-            'session_id'        => session()->getId(),
-            'last_seen_at'      => now(),
-            'power_ups'         => [],
-            'player_account_id' => $playerAccountId,
+            'nickname'     => $request->nickname,
+            'score'        => 0,
+            'session_id'   => session()->getId(),
+            'last_seen_at' => now(),
+            'power_ups'    => [],
+            'user_id'      => auth()->check() ? auth()->id() : null,
         ]);
 
         $player->load('game');
