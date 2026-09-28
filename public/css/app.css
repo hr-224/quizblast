@@ -769,5 +769,7 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .spec-answers .ans-tile{flex-direction:row;justify-content:flex-start;gap:.6rem;min-height:4.5rem;padding:1rem 1.25rem;text-align:left}
 .spec-final-card{max-width:500px;margin:1rem auto 0}
 .timer-ring-num-sm{font-size:1.4rem}
+.spec-question .timer-ring{width:72px;height:72px}
+.spec-question .timer-ring-fill{stroke-dasharray:201}
 
 /* === END AUTH & SPECTATOR === */
