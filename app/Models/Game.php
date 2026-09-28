@@ -37,12 +37,33 @@ class Game extends Model
 
     public function timeRemaining(): int
     {
-        if (!$this->question_started_at || $this->status !== 'question') {
+        if (! $this->question_started_at || $this->status !== 'question') {
             return 0;
         }
         $question = $this->currentQuestion();
-        if (!$question) return 0;
+        if (! $question) {
+            return 0;
+        }
         $elapsed = $this->question_started_at->diffInSeconds(now(), false);
-        return max(0, $question->time_limit - $elapsed);
+        $sinceAnswersVisible = $elapsed - $question->answer_delay;
+        if ($sinceAnswersVisible < 0) {
+            return $question->time_limit;
+        }
+
+        return max(0, $question->time_limit - $sinceAnswersVisible);
+    }
+
+    public function delayRemaining(): int
+    {
+        if (! $this->question_started_at || $this->status !== 'question') {
+            return 0;
+        }
+        $question = $this->currentQuestion();
+        if (! $question) {
+            return 0;
+        }
+        $elapsed = $this->question_started_at->diffInSeconds(now(), false);
+
+        return max(0, $question->answer_delay - $elapsed);
     }
 }

@@ -17,7 +17,7 @@ class GameStateChanged implements ShouldBroadcastNow
 
     public function broadcastOn(): array
     {
-        return [new Channel('game.' . $this->game->pin)];
+        return [new Channel('game.'.$this->game->pin)];
     }
 
     public function broadcastAs(): string
@@ -31,23 +31,28 @@ class GameStateChanged implements ShouldBroadcastNow
         $question = $this->game->currentQuestion();
 
         $data = [
-            'status'           => $this->game->status,
+            'status' => $this->game->status,
             'current_question' => $this->game->current_question,
-            'total_questions'  => $this->game->quiz->questions->count(),
-            'time_remaining'   => $this->game->timeRemaining(),
-            'player_count'     => $this->game->players->count(),
+            'total_questions' => $this->game->quiz->questions->count(),
+            'time_remaining' => $this->game->timeRemaining(),
+            'delay_remaining' => $this->game->delayRemaining(),
+            'player_count' => $this->game->players->count(),
         ];
 
         if ($question && in_array($this->game->status, ['question', 'reviewing'])) {
             $data['question'] = [
-                'id'         => $question->id,
-                'text'       => $question->question_text,
+                'id' => $question->id,
+                'text' => $question->question_text,
                 'time_limit' => $question->time_limit,
-                'points'           => $question->points,
+                'answer_delay' => $question->answer_delay,
+                'points' => $question->points,
+                'image_url' => $question->image_url,
+                'video_url' => $question->video_url,
+                'youtube_id' => $question->getYoutubeId(),
                 'multiple_correct' => (bool) $question->multiple_correct,
-                'answers'    => $question->answers->map(fn($a) => [
-                    'id'         => $a->id,
-                    'text'       => $a->answer_text,
+                'answers' => $question->answers->map(fn ($a) => [
+                    'id' => $a->id,
+                    'text' => $a->answer_text,
                     'is_correct' => $this->game->status === 'reviewing' ? $a->is_correct : null,
                 ]),
             ];

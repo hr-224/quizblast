@@ -7,17 +7,20 @@ use App\Models\Question;
 use App\Models\Quiz;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class GameTimeRemainingTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function makeGame(int $timeLimit, ?\Illuminate\Support\Carbon $startedAt, string $status = 'question'): Game
+    private function makeGame(int $timeLimit, ?Carbon $startedAt, string $status = 'question'): Game
     {
         $host = User::create(['name' => 'Host', 'email' => 'timer@test.com', 'password' => bcrypt('pw')]);
         $quiz = Quiz::create(['user_id' => $host->id, 'title' => 'Q']);
-        Question::create(['quiz_id' => $quiz->id, 'question_text' => 'Q?', 'time_limit' => $timeLimit, 'points' => 1000, 'order' => 0]);
+        // answer_delay: 0 — these tests are about the elapsed-time subtraction itself, predating
+        // the additive answer_delay feature (see AnswerDelayTest for delay-specific coverage).
+        Question::create(['quiz_id' => $quiz->id, 'question_text' => 'Q?', 'time_limit' => $timeLimit, 'answer_delay' => 0, 'points' => 1000, 'order' => 0]);
 
         return Game::create([
             'quiz_id' => $quiz->id, 'user_id' => $host->id, 'pin' => '900001',

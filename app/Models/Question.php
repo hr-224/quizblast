@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Question extends Model
 {
     protected $fillable = [
-        'quiz_id','question_text','image_url','video_url',
-        'multiple_correct','time_limit','points','order'
+        'quiz_id', 'question_text', 'image_url', 'video_url',
+        'multiple_correct', 'time_limit', 'answer_delay', 'points', 'order',
     ];
 
     protected $casts = ['multiple_correct' => 'boolean'];
@@ -30,8 +30,11 @@ class Question extends Model
 
     public function getYoutubeId(): ?string
     {
-        if (!$this->video_url) return null;
+        if (! $this->video_url) {
+            return null;
+        }
         preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $this->video_url, $m);
+
         return $m[1] ?? null;
     }
 }
