@@ -54,7 +54,9 @@
   <div class="container">
     @if($browse && $featured->isNotEmpty())
       <section class="lib-featured" aria-labelledby="lib-featured-h">
-        <h2 class="lib-section-title" id="lib-featured-h">{{ $featuredLabel }}</h2>
+        <div class="lib-row-head">
+          <h2 class="lib-section-title" id="lib-featured-h">{{ $featuredLabel }}</h2>
+        </div>
         <div class="grid-3">
           @foreach($featured as $quiz)
             <x-quiz-card :quiz="$quiz" :featured="true" />

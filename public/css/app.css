@@ -714,9 +714,8 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .q-preview-row-card{padding:.85rem 1.25rem}
 .quiz-card-link .quiz-card{height:100%}
 .lib-bar{position:sticky;top:var(--topbar-h);z-index:20;background:var(--ink-2);border-bottom:1px solid var(--line)}
-.lib-bar-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-top:.6rem;padding-bottom:.6rem}
-.lib-cats{display:flex;gap:.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;min-width:0;flex:1;padding-bottom:2px;scrollbar-width:none}
-.lib-cats::-webkit-scrollbar,.lib-sort::-webkit-scrollbar{display:none}
+.lib-bar-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;padding-top:.6rem;padding-bottom:.6rem}
+.lib-cats{display:flex;flex-wrap:wrap;gap:.5rem;min-width:0;flex:1}
 .lib-chip{display:inline-flex;align-items:center;gap:.4rem;flex-shrink:0;padding:.4rem .9rem;border-radius:999px;border:1px solid var(--line);color:var(--text-muted);font-weight:700;font-size:.85rem;text-decoration:none;white-space:nowrap;transition:var(--transition)}
 .lib-chip:hover{color:var(--text);border-color:var(--line-strong)}
 .lib-chip.is-active{background:var(--violet-deep);border-color:transparent;color:var(--white)}
@@ -748,7 +747,8 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .lib-card-actions{position:relative;z-index:1;display:flex;gap:.5rem;flex-wrap:wrap;padding:.75rem 1.15rem 1.1rem}
 @media (max-width: 767px){
   .lib-bar-inner{flex-direction:column;align-items:stretch;gap:.4rem}
-  .lib-sort{overflow-x:auto;scrollbar-width:none}
+  .lib-bar{position:static}
+  .lib-sort{flex-wrap:wrap}
   .lib-cover-shape{width:7rem;height:7rem}
 }
 .ans-fg-0{color:var(--ans-coral)}

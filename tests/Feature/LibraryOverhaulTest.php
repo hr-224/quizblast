@@ -246,4 +246,20 @@ class LibraryOverhaulTest extends TestCase
         $src = file_get_contents(resource_path('views/components/quiz-card.blade.php'));
         $this->assertDoesNotMatchRegularExpression('/\sstyle\s*=|<style/i', $src);
     }
+
+    public function test_category_chips_wrap_instead_of_hiding_behind_a_scroll(): void
+    {
+        $css = file_get_contents(public_path('css/app.css'));
+        $this->assertMatchesRegularExpression('/\.lib-cats\{[^}]*flex-wrap:wrap/', $css);
+        $this->assertDoesNotMatchRegularExpression('/\.lib-cats\{[^}]*overflow-x/', $css);
+    }
+
+    public function test_popular_heading_uses_the_same_spaced_header_as_the_other_sections(): void
+    {
+        $this->quiz('Brand New Quiz');
+
+        $html = $this->get(route('library'))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<div class="lib-row-head">\s*<h2 class="lib-section-title" id="lib-featured-h">/', $html);
+    }
 }
