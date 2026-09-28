@@ -133,4 +133,19 @@ class AccountUnificationTest extends TestCase
 
         $this->assertDatabaseHas('game_players', ['game_id' => $game->id, 'nickname' => 'Guest', 'user_id' => null]);
     }
+
+    public function test_finishing_a_game_increments_the_linked_users_stats(): void
+    {
+        $user  = \App\Models\User::create(['name' => 'Finisher', 'email' => 'unify-final@test.com', 'password' => 'secret-pass']);
+        $host  = \App\Models\User::create(['name' => 'Host', 'email' => 'unify-final-host@test.com', 'password' => 'secret-pass']);
+        $quiz  = \App\Models\Quiz::create(['user_id' => $host->id, 'title' => 'Q']);
+        $game  = \App\Models\Game::create(['quiz_id' => $quiz->id, 'user_id' => $host->id, 'pin' => '960006', 'status' => 'finished', 'current_question' => 0]);
+        $gp    = \App\Models\GamePlayer::create(['game_id' => $game->id, 'nickname' => 'Finisher1', 'score' => 500, 'streak' => 0, 'best_streak' => 0, 'user_id' => $user->id]);
+
+        $this->withSession(['player_id_960006' => $gp->id])->get(route('play.final', '960006'));
+
+        $user->refresh();
+        $this->assertSame(1, $user->games_played);
+        $this->assertSame(500, $user->total_score);
+    }
 }

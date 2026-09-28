@@ -307,11 +307,11 @@ class PlayerController extends Controller
             ];
         }
 
-        if ($player && $player->playerAccount) {
+        if ($player && $player->user) {
             $isWinner = $rank === 1;
-            $player->playerAccount->increment('games_played');
-            $player->playerAccount->increment('total_score', $player->score);
-            if ($isWinner) $player->playerAccount->increment('wins');
+            $player->user->increment('games_played');
+            $player->user->increment('total_score', $player->score);
+            if ($isWinner) $player->user->increment('wins');
         }
 
         return view('play.final', compact('game', 'player', 'players', 'rank', 'personalStats'));
