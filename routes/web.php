@@ -19,9 +19,13 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
 
-// Player Accounts — legacy redirects keep old URLs working
+// Player Accounts — legacy URLs still work, aliased onto the unified controllers
+// (not just a GET redirect: a stale cached form POSTing here must still actually work).
 Route::get('/account/register', fn() => redirect()->route('register'))->name('player.register');
 Route::get('/account/login', fn() => redirect()->route('login'))->name('player.login');
+Route::post('/account/register', [RegisterController::class, 'register']);
+Route::post('/account/login', [LoginController::class, 'login']);
+Route::post('/account/logout', [LoginController::class, 'logout']);
 
 // Public Library
 Route::get('/library', [LibraryController::class, 'index'])->name('library');

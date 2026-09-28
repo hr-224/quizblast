@@ -25,16 +25,26 @@ class DeadAuthCodeRemovedTest extends TestCase
     }
 
     /**
-     * The POST routes that used to hit PlayerAuthController are gone entirely.
-     * /account/register and /account/login still have a GET redirect route at the same
-     * path, so Laravel reports a POST there as 405 Method Not Allowed rather than 404 —
-     * /account/logout has no route left at all, so that one is a genuine 404.
+     * PlayerAuthController itself is gone (see test_player_auth_controller_is_gone above),
+     * but a stale cached form still POSTing to /account/register or /account/login must
+     * keep working — aliased onto the unified RegisterController/LoginController rather
+     * than left to 404/405.
      */
-    public function test_account_post_routes_are_gone(): void
+    public function test_account_post_routes_are_aliased_onto_the_unified_controllers(): void
     {
         $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
-        $this->post('/account/register', [])->assertMethodNotAllowed();
-        $this->post('/account/login', [])->assertMethodNotAllowed();
-        $this->post('/account/logout', [])->assertNotFound();
+
+        $this->post('/account/register', [
+            'name' => 'Dead Code Test', 'email' => 'dead-code-register@test.com',
+            'password' => 'password123', 'password_confirmation' => 'password123',
+        ])->assertRedirect(route('dashboard'));
+        $this->assertDatabaseHas('users', ['email' => 'dead-code-register@test.com']);
+
+        \App\Models\User::create(['name' => 'Login Test', 'email' => 'dead-code-login@test.com', 'password' => 'password123']);
+        $this->post('/account/login', ['email' => 'dead-code-login@test.com', 'password' => 'password123'])
+            ->assertRedirect(route('dashboard'));
+
+        $this->post('/account/logout')->assertRedirect(route('play.join'));
+        $this->assertGuest();
     }
 }

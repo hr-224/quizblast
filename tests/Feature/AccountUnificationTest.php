@@ -309,4 +309,44 @@ class AccountUnificationTest extends TestCase
         $this->assertStringContainsString('My stats', $html);
         $this->assertStringNotContainsString('Save stats', $html);
     }
+
+    /** A stale cached form (bookmarked or cached before this branch shipped) posting to
+     *  the legacy /account/* paths should still actually work, not just fail cleanly. */
+    public function test_stale_account_register_post_still_creates_an_account(): void
+    {
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+        $response = $this->post('/account/register', [
+            'name' => 'Stale Form', 'email' => 'unify-stale-register@test.com',
+            'password' => 'password123', 'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticated();
+        $this->assertDatabaseHas('users', ['email' => 'unify-stale-register@test.com']);
+    }
+
+    public function test_stale_account_login_post_still_logs_in(): void
+    {
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+        $user = \App\Models\User::create(['name' => 'Stale Login', 'email' => 'unify-stale-login@test.com', 'password' => 'password123']);
+
+        $response = $this->post('/account/login', ['email' => 'unify-stale-login@test.com', 'password' => 'password123']);
+
+        $response->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($user);
+    }
+
+    public function test_stale_account_logout_post_still_logs_out(): void
+    {
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+        $user = \App\Models\User::create(['name' => 'Stale Logout', 'email' => 'unify-stale-logout@test.com', 'password' => 'password123']);
+
+        $response = $this->actingAs($user)->post('/account/logout');
+
+        $response->assertRedirect(route('play.join'));
+        $this->assertGuest();
+    }
 }
