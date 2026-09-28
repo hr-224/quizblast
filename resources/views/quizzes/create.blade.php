@@ -8,7 +8,7 @@
   <p class="text-muted mb-3">Set a title and description, then add questions on the next screen.</p>
 
   <div class="card slide-up">
-    <form method="POST" action="{{ route('quizzes.store') }}">
+    <form method="POST" action="{{ route('quizzes.store') }}" enctype="multipart/form-data">
       @csrf
       <div class="form-group">
         <label class="form-label">Quiz title *</label>
@@ -20,6 +20,7 @@
         <textarea name="description" class="form-control" placeholder="Brief description of your quiz...">{{ old('description') }}</textarea>
         @error('description')<span class="field-error">{{ $message }}</span>@enderror
       </div>
+      <x-banner-fields />
       <div class="form-group">
         <label class="form-check">
           <input type="checkbox" name="is_public" value="1" {{ old('is_public') ? 'checked' : '' }} />

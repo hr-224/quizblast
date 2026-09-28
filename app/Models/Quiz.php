@@ -6,7 +6,37 @@ use Illuminate\Database\Eloquent\Model;
 
 class Quiz extends Model
 {
-    protected $fillable = ['user_id','title','description','is_public','category','tags'];
+    protected $fillable = ['user_id','title','description','is_public','category','tags','banner'];
+
+    public const BANNER_DIR = 'uploads/banners';
+
+    protected static function booted(): void
+    {
+        static::deleted(fn (Quiz $quiz) => static::deleteBannerFile($quiz->banner));
+    }
+
+    /** Public URL of the banner image, whether it is an uploaded file or a pasted URL. */
+    public function getBannerUrlAttribute(): ?string
+    {
+        if (! $this->banner) {
+            return null;
+        }
+
+        return preg_match('#^https?://#i', $this->banner) ? $this->banner : asset($this->banner);
+    }
+
+    /** Deletes an uploaded banner file once no quiz references it (duplicates share the file). */
+    public static function deleteBannerFile(?string $path): void
+    {
+        if (! $path || ! str_starts_with($path, self::BANNER_DIR . '/') || str_contains($path, '..')) {
+            return;
+        }
+        if (static::where('banner', $path)->exists()) {
+            return;
+        }
+
+        @unlink(public_path($path));
+    }
 
     public function user()
     {

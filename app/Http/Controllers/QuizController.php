@@ -6,6 +6,7 @@ use App\Models\Question;
 use App\Models\Quiz;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class QuizController extends Controller
 {
@@ -29,6 +30,9 @@ class QuizController extends Controller
             'category' => ['nullable', 'string', 'max:100'],
             'tags' => ['nullable', 'string', 'max:255'],
             'is_public' => ['nullable', 'boolean'],
+            'banner_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'banner_url' => ['nullable', 'url:http,https', 'max:500'],
+            'remove_banner' => ['nullable', 'boolean'],
         ]);
 
         $quiz = $request->user()->quizzes()->create([
@@ -37,6 +41,7 @@ class QuizController extends Controller
             'category' => $request->category,
             'tags' => $request->tags,
             'is_public' => $request->boolean('is_public'),
+            'banner' => $this->resolveBanner($request, null),
         ]);
 
         return redirect()->route('quizzes.edit', $quiz)->with('success', 'Quiz created! Now add some questions.');
@@ -67,15 +72,23 @@ class QuizController extends Controller
             'category' => ['nullable', 'string', 'max:100'],
             'tags' => ['nullable', 'string', 'max:255'],
             'is_public' => ['nullable', 'boolean'],
+            'banner_file' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'banner_url' => ['nullable', 'url:http,https', 'max:500'],
+            'remove_banner' => ['nullable', 'boolean'],
         ]);
 
+        $previous = $quiz->banner;
         $quiz->update([
             'title' => $request->title,
             'description' => $request->description,
             'category' => $request->category,
             'tags' => $request->tags,
             'is_public' => $request->boolean('is_public'),
+            'banner' => $this->resolveBanner($request, $previous),
         ]);
+        if ($quiz->banner !== $previous) {
+            Quiz::deleteBannerFile($previous);
+        }
 
         return back()->with('success', 'Quiz updated!');
     }
@@ -264,6 +277,23 @@ class QuizController extends Controller
         $quiz->load('questions.answers');
 
         return view('quizzes.show', compact('quiz'));
+    }
+
+    /** An uploaded file wins over a pasted URL; "remove" clears it; otherwise the current banner stays. */
+    private function resolveBanner(Request $request, ?string $current): ?string
+    {
+        if ($request->hasFile('banner_file')) {
+            $file = $request->file('banner_file');
+            $name = Str::random(40) . '.' . $file->extension();
+            $file->move(public_path(Quiz::BANNER_DIR), $name);
+
+            return Quiz::BANNER_DIR . '/' . $name;
+        }
+        if ($request->filled('banner_url')) {
+            return $request->banner_url;
+        }
+
+        return $request->boolean('remove_banner') ? null : $current;
     }
 
     private function authorize(Quiz $quiz)

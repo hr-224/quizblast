@@ -3,6 +3,9 @@
 <article class="quiz-card lib-card{{ $featured ? ' lib-card-featured' : '' }}">
   <div class="lib-cover lib-cover-{{ $tone }}" aria-hidden="true">
     <x-answer-shape :index="$tone" class="lib-cover-shape" />
+    @if($quiz->banner_url)
+      <img class="lib-cover-img" src="{{ $quiz->banner_url }}" loading="lazy" referrerpolicy="no-referrer" alt="" />
+    @endif
   </div>
   <div class="lib-card-body">
     @if($quiz->category)<div class="quiz-tile-tag">{{ $quiz->category }}</div>@endif

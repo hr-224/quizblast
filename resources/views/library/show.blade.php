@@ -4,6 +4,9 @@
 @section('content')
 <div class="container-md mt-4">
   <a href="{{ route('library') }}" class="text-muted">← Library</a>
+  @if($quiz->banner_url)
+    <div class="lib-banner"><img class="lib-banner-img" src="{{ $quiz->banner_url }}" referrerpolicy="no-referrer" alt="" /></div>
+  @endif
   <div class="page-head">
     <div>
       @if($quiz->category)<div class="quiz-tile-tag">{{ $quiz->category }}</div>@endif

@@ -26,7 +26,7 @@
   </div>
 
   <div id="edit-meta" class="card hidden mb-3">
-    <form method="POST" action="{{ route('quizzes.update', $quiz) }}">
+    <form method="POST" action="{{ route('quizzes.update', $quiz) }}" enctype="multipart/form-data">
       @csrf @method('PUT')
       <div class="grid-2">
         <div class="form-group">
@@ -46,6 +46,7 @@
           <input type="text" name="tags" class="form-control" value="{{ old('tags', $quiz->tags) }}" placeholder="fun, trivia, easy..." />
         </div>
       </div>
+      <x-banner-fields :quiz="$quiz" />
       <div class="form-group">
         <label class="form-check">
           <input type="checkbox" name="is_public" value="1" {{ $quiz->is_public ? 'checked' : '' }} />
