@@ -49,6 +49,8 @@ The installer will:
 - Set your site URL and create your admin account
 - Run all migrations automatically
 
+**No browser? Run `./setup.sh`** for a headless CLI install (checks PHP/Composer, installs dependencies, sets up `.env`, generates the app key, and runs migrations).
+
 > See [docs/installation.md](docs/installation.md) for nginx and Apache virtual host configs, and the full production guide.
 
 ---
