@@ -52,6 +52,7 @@
   const statusEl = document.getElementById('status-text');
 
   let leftAlready = false;
+  try { localStorage.setItem('qb_rejoin_' + pin, @json($player->rejoin_token)); } catch (e) {}
   let tickerTimer = null;
   let pusher      = null;
 

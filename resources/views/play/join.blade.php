@@ -15,6 +15,7 @@
 
     <form method="POST" action="{{ route('play.join.post') }}" class="join-form">
       @csrf
+      <input type="hidden" name="rejoin_token" id="join-token" value="" />
       <div class="form-group">
         <label class="form-label" for="join-pin">Game PIN</label>
         <input type="text" id="join-pin" name="pin" class="form-control join-pin"
@@ -55,6 +56,14 @@
     var v = pin.value.replace(/\D/g, '').slice(0, 6);
     if (v !== pin.value) pin.value = v;
   });
+
+  // Lets a player who lost their session prove they own their nickname mid-game.
+  var form = pin.form, token = document.getElementById('join-token');
+  if (form && token) {
+    form.addEventListener('submit', function () {
+      try { token.value = localStorage.getItem('qb_rejoin_' + pin.value) || ''; } catch (e) {}
+    });
+  }
 })();
 </script>
 @endpush

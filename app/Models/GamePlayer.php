@@ -9,8 +9,10 @@ class GamePlayer extends Model
 {
     protected $fillable = [
         'game_id','nickname','score','session_id','last_seen_at',
-        'team','streak','best_streak','power_ups','is_spectator','user_id','stats_credited_at'
+        'team','streak','best_streak','power_ups','is_spectator','user_id','stats_credited_at','rejoin_token'
     ];
+
+    protected $hidden = ['rejoin_token'];
 
     protected $casts = [
         'power_ups'         => 'array',

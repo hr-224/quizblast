@@ -14,6 +14,7 @@ use App\Models\GamePlayer;
 use App\Models\GameReaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class PlayerController extends Controller
@@ -56,13 +57,17 @@ class PlayerController extends Controller
         if (!$game) {
             $activeGame = Game::where('pin', $request->pin)->whereIn('status', ['question','reviewing'])->first();
             if ($activeGame) {
-                // Check if player was in this game
-                $existingPlayer = $activeGame->players()->where('nickname', $request->nickname)->first();
+                $existingPlayer = $activeGame->players()
+                    ->where('nickname', $request->nickname)
+                    ->where('is_spectator', false)
+                    ->first();
                 if ($existingPlayer) {
-                    session(['player_id_' . $activeGame->pin => $existingPlayer->id]);
-                    return redirect()->route('play.game', $activeGame->pin);
+                    if (!$this->ownsPlayer($request, $existingPlayer)) {
+                        return back()->withErrors(['nickname' => 'That name is already in use in this game. If it\'s you, rejoin from the device you started on, or ask the host.'])->withInput();
+                    }
+                    return $this->rejoinPlayer($existingPlayer, $activeGame);
                 }
-                return back()->withErrors(['pin' => 'This game is already in progress. Ask the host if you can rejoin.'])->withInput();
+                return back()->withErrors(['pin' => 'This game has already started, so new players can\'t join. Check the PIN, or use your original nickname to rejoin.'])->withInput();
             }
             return back()->withErrors(['pin' => 'Game not found or already finished. Check the PIN and try again.'])->withInput();
         }
@@ -79,6 +84,7 @@ class PlayerController extends Controller
             'last_seen_at' => now(),
             'power_ups'    => [],
             'user_id'      => auth()->check() ? auth()->id() : null,
+            'rejoin_token' => Str::random(40),
         ]);
 
         $player->load('game');
@@ -87,6 +93,40 @@ class PlayerController extends Controller
         session(['player_id_' . $game->pin => $player->id]);
 
         return redirect()->route('play.lobby', $game->pin);
+    }
+
+    /** A returning player proves identity by rejoin token, linked account, or their live session. */
+    private function ownsPlayer(Request $request, GamePlayer $player): bool
+    {
+        $token = (string) $request->input('rejoin_token', '');
+        if ($token !== '' && $player->rejoin_token && hash_equals($player->rejoin_token, $token)) {
+            return true;
+        }
+        if (auth()->check() && $player->user_id && $player->user_id === auth()->id()) {
+            return true;
+        }
+        return (int) session('player_id_' . $player->game->pin) === $player->id;
+    }
+
+    private function rejoinPlayer(GamePlayer $player, Game $game)
+    {
+        $player->update([
+            'session_id'   => session()->getId(),
+            'last_seen_at' => now(),
+            'rejoin_token' => Str::random(40), // rotate so an old/stolen token can't be replayed
+            'user_id'      => $player->user_id ?? (auth()->check() ? auth()->id() : null),
+        ]);
+
+        $answered = GameAnswer::where('game_player_id', $player->id)->distinct()->pluck('question_id');
+        $missed = $game->quiz->questions
+            ->take($game->current_question)
+            ->whereNotIn('id', $answered)
+            ->count();
+
+        session(['player_id_' . $game->pin => $player->id]);
+        session()->flash('rejoined', $missed);
+
+        return redirect()->route('play.game', $game->pin);
     }
 
     public function lobby(string $pin)

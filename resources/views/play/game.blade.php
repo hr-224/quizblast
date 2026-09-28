@@ -110,6 +110,7 @@
   const pin        = '{{ $game->pin }}';
   const playerId   = {{ $player->id }};
   const myNickname = @json($player->nickname);
+  try { localStorage.setItem('qb_rejoin_' + pin, @json($player->rejoin_token)); } catch (e) {}
   const csrfToken  = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
   const appKey     = '{{ config('broadcasting.connections.reverb.key') }}';
   const wsHost     = '{{ config('broadcasting.connections.reverb.options.host') }}';
@@ -181,6 +182,13 @@
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 3000);
   }
+
+  @if(session()->has('rejoined'))
+    @php $missed = (int) session('rejoined'); @endphp
+    showToast(@json($missed > 0
+      ? "Welcome back! You missed {$missed} question" . ($missed === 1 ? '' : 's') . '.'
+      : 'Welcome back!'));
+  @endif
 
   function updateScore(score) {
     myScore = score;
