@@ -28,10 +28,8 @@ class AccountUnificationTest extends TestCase
 
     public function test_user_has_stat_helpers_and_game_players_relation(): void
     {
-        $user = \App\Models\User::create([
-            'name' => 'Stat Fan', 'email' => 'unify-model@test.com', 'password' => 'secret-pass',
-            'total_score' => 4500, 'games_played' => 3, 'wins' => 1,
-        ]);
+        $user = \App\Models\User::create(['name' => 'Stat Fan', 'email' => 'unify-model@test.com', 'password' => 'secret-pass']);
+        $user->forceFill(['total_score' => 4500, 'games_played' => 3, 'wins' => 1])->save();
         $this->assertSame('33%', $user->win_rate);
 
         $quiz = \App\Models\Quiz::create(['user_id' => $user->id, 'title' => 'Played Quiz']);
@@ -46,6 +44,26 @@ class AccountUnificationTest extends TestCase
     {
         $user = \App\Models\User::create(['name' => 'New Host', 'email' => 'unify-zero@test.com', 'password' => 'secret-pass']);
         $this->assertSame('0%', $user->win_rate);
+    }
+
+    /** The zero-games guard must hold even if games_played ends up null through some path
+     *  other than the model's own defaults (e.g. a raw attribute set) — not just == 0. */
+    public function test_user_win_rate_is_robust_to_a_null_games_played(): void
+    {
+        $user = \App\Models\User::create(['name' => 'Null Games', 'email' => 'unify-null-games@test.com', 'password' => 'secret-pass']);
+        $user->games_played = null;
+        $this->assertSame('0%', $user->win_rate);
+    }
+
+    /** Stats are only ever changed via increment() (join/final). No request should be able
+     *  to set them directly through mass assignment — e.g. a future profile-edit form. */
+    public function test_stat_columns_are_not_mass_assignable(): void
+    {
+        $user = \App\Models\User::create(['name' => 'Guard Test', 'email' => 'unify-guard@test.com', 'password' => 'secret-pass']);
+        $user->fill(['total_score' => 99999, 'games_played' => 50, 'wins' => 50]);
+        $this->assertSame(0, $user->total_score);
+        $this->assertSame(0, $user->games_played);
+        $this->assertSame(0, $user->wins);
     }
 
     public function test_game_player_user_relation_resolves(): void
@@ -147,6 +165,8 @@ class AccountUnificationTest extends TestCase
         $user->refresh();
         $this->assertSame(1, $user->games_played);
         $this->assertSame(500, $user->total_score);
+        // Sole player in the game ranks #1, so this also exercises the wins increment.
+        $this->assertSame(1, $user->wins);
     }
 
     /** Refreshing/revisiting the results page must not credit lifetime stats twice. */

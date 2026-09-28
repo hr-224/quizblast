@@ -13,6 +13,7 @@ use App\Models\GameAnswer;
 use App\Models\GamePlayer;
 use App\Models\GameReaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class PlayerController extends Controller
@@ -315,9 +316,12 @@ class PlayerController extends Controller
             $claimed = GamePlayer::where('id', $player->id)->whereNull('stats_credited_at')->update(['stats_credited_at' => now()]);
             if ($claimed) {
                 $isWinner = $rank === 1;
-                $player->user->increment('games_played');
-                $player->user->increment('total_score', $player->score);
-                if ($isWinner) $player->user->increment('wins');
+                $updates  = [
+                    'games_played' => DB::raw('games_played + 1'),
+                    'total_score'  => DB::raw('total_score + ' . (int) $player->score),
+                ];
+                if ($isWinner) $updates['wins'] = DB::raw('wins + 1');
+                $player->user()->update($updates);
             }
         }
 

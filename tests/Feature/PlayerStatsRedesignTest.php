@@ -15,10 +15,9 @@ class PlayerStatsRedesignTest extends TestCase
 
     private function makeUser(): User
     {
-        return User::create([
-            'name' => 'Stat Fan', 'email' => 'stats@test.com', 'password' => 'secret-pass',
-            'total_score' => 4500, 'games_played' => 3, 'wins' => 1,
-        ]);
+        $user = User::create(['name' => 'Stat Fan', 'email' => 'stats@test.com', 'password' => 'secret-pass']);
+        $user->forceFill(['total_score' => 4500, 'games_played' => 3, 'wins' => 1])->save();
+        return $user;
     }
 
     public function test_stats_page_requires_login(): void

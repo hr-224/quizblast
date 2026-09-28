@@ -9,7 +9,7 @@ class User extends Authenticatable
 {
     use Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'total_score', 'games_played', 'wins'];
+    protected $fillable = ['name', 'email', 'password'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -43,7 +43,7 @@ class User extends Authenticatable
 
     public function getWinRateAttribute(): string
     {
-        if ($this->games_played === 0) return '0%';
+        if (! $this->games_played) return '0%';
         return round(($this->wins / $this->games_played) * 100) . '%';
     }
 
