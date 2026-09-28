@@ -762,4 +762,12 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .stats-stat-val.is-ok{color:var(--ok)}
 .stats-stat-val.is-cyan{color:var(--ans-cyan)}
 
+.spec-container{flex:1;display:flex;flex-direction:column;align-items:center;padding:1.5rem;width:100%;max-width:860px;margin:0 auto;gap:1rem}
+.spec-question,.spec-reviewing{width:100%}
+.spec-question .q-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.spec-answers{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.spec-answers .ans-tile{flex-direction:row;justify-content:flex-start;gap:.6rem;min-height:4.5rem;padding:1rem 1.25rem;text-align:left}
+.spec-final-card{max-width:500px;margin:1rem auto 0}
+.timer-ring-num-sm{font-size:1.4rem}
+
 /* === END AUTH & SPECTATOR === */
