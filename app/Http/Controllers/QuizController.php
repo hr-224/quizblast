@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Quiz;
 use App\Models\Question;
-use App\Models\Answer;
+use App\Models\Quiz;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -13,6 +12,7 @@ class QuizController extends Controller
     public function index(Request $request)
     {
         $quizzes = $request->user()->quizzes()->withCount('questions')->latest()->get();
+
         return view('quizzes.index', compact('quizzes'));
     }
 
@@ -24,19 +24,19 @@ class QuizController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title'       => ['required','string','max:255'],
-            'description' => ['nullable','string','max:1000'],
-            'category'    => ['nullable','string','max:100'],
-            'tags'        => ['nullable','string','max:255'],
-            'is_public'   => ['nullable','boolean'],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'category' => ['nullable', 'string', 'max:100'],
+            'tags' => ['nullable', 'string', 'max:255'],
+            'is_public' => ['nullable', 'boolean'],
         ]);
 
         $quiz = $request->user()->quizzes()->create([
-            'title'       => $request->title,
+            'title' => $request->title,
             'description' => $request->description,
-            'category'    => $request->category,
-            'tags'        => $request->tags,
-            'is_public'   => $request->boolean('is_public'),
+            'category' => $request->category,
+            'tags' => $request->tags,
+            'is_public' => $request->boolean('is_public'),
         ]);
 
         return redirect()->route('quizzes.edit', $quiz)->with('success', 'Quiz created! Now add some questions.');
@@ -46,6 +46,7 @@ class QuizController extends Controller
     {
         $this->authorize($quiz);
         $quiz->load('questions.answers');
+
         return view('quizzes.show', compact('quiz'));
     }
 
@@ -53,6 +54,7 @@ class QuizController extends Controller
     {
         $this->authorize($quiz);
         $quiz->load('questions.answers');
+
         return view('quizzes.edit', compact('quiz'));
     }
 
@@ -60,19 +62,19 @@ class QuizController extends Controller
     {
         $this->authorize($quiz);
         $request->validate([
-            'title'       => ['required','string','max:255'],
-            'description' => ['nullable','string','max:1000'],
-            'category'    => ['nullable','string','max:100'],
-            'tags'        => ['nullable','string','max:255'],
-            'is_public'   => ['nullable','boolean'],
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'category' => ['nullable', 'string', 'max:100'],
+            'tags' => ['nullable', 'string', 'max:255'],
+            'is_public' => ['nullable', 'boolean'],
         ]);
 
         $quiz->update([
-            'title'       => $request->title,
+            'title' => $request->title,
             'description' => $request->description,
-            'category'    => $request->category,
-            'tags'        => $request->tags,
-            'is_public'   => $request->boolean('is_public'),
+            'category' => $request->category,
+            'tags' => $request->tags,
+            'is_public' => $request->boolean('is_public'),
         ]);
 
         return back()->with('success', 'Quiz updated!');
@@ -82,6 +84,7 @@ class QuizController extends Controller
     {
         $this->authorize($quiz);
         $quiz->delete();
+
         return redirect()->route('dashboard')->with('success', 'Quiz deleted.');
     }
 
@@ -89,6 +92,7 @@ class QuizController extends Controller
     {
         $this->authorize($quiz);
         $new = $quiz->duplicate();
+
         return redirect()->route('quizzes.edit', $new)->with('success', 'Quiz duplicated!');
     }
 
@@ -97,16 +101,17 @@ class QuizController extends Controller
         $this->authorize($quiz);
 
         $request->validate([
-            'question_text'    => ['required','string','max:500'],
-            'time_limit'       => ['required','integer','min:5','max:120'],
-            'points'           => ['required','integer','min:0','max:2000'],
-            'answers'          => ['required','array','min:2','max:4'],
-            'answers.*'        => ['required','string','max:200'],
-            'correct_answers'  => ['required','array','min:1'],
-            'image_url'        => ['nullable','url:http,https','max:500'],
-            'video_url'        => ['nullable','url:http,https','max:500'],
-            'multiple_correct' => ['nullable','boolean'],
-            'request_token'    => ['nullable','string','max:100'],
+            'question_text' => ['required', 'string', 'max:500'],
+            'time_limit' => ['required', 'integer', 'min:5', 'max:120'],
+            'answer_delay' => ['required', 'integer', 'min:0', 'max:180'],
+            'points' => ['required', 'integer', 'min:0', 'max:2000'],
+            'answers' => ['required', 'array', 'min:2', 'max:4'],
+            'answers.*' => ['required', 'string', 'max:200'],
+            'correct_answers' => ['required', 'array', 'min:1'],
+            'image_url' => ['nullable', 'url:http,https', 'max:500'],
+            'video_url' => ['nullable', 'url:http,https', 'max:500'],
+            'multiple_correct' => ['nullable', 'boolean'],
+            'request_token' => ['nullable', 'string', 'max:100'],
         ]);
 
         // A double submit (double-click, or a retried request after a slow/dropped response)
@@ -115,27 +120,30 @@ class QuizController extends Controller
             return back()->with('success', 'Question added!');
         }
 
-        $order    = $quiz->questions()->count();
+        $order = $quiz->questions()->count();
         $multiple = $request->boolean('multiple_correct') || count($request->correct_answers) > 1;
 
         $question = $quiz->questions()->create([
-            'question_text'    => $request->question_text,
-            'time_limit'       => $request->time_limit,
-            'points'           => $request->points,
-            'order'            => $order,
-            'image_url'        => $request->image_url,
-            'video_url'        => $request->video_url,
+            'question_text' => $request->question_text,
+            'time_limit' => $request->time_limit,
+            'answer_delay' => $request->answer_delay,
+            'points' => $request->points,
+            'order' => $order,
+            'image_url' => $request->image_url,
+            'video_url' => $request->video_url,
             'multiple_correct' => $multiple,
         ]);
 
         $correctAnswers = array_map('intval', $request->correct_answers);
 
         foreach ($request->answers as $idx => $answerText) {
-            if (trim($answerText) === '') continue;
+            if (trim($answerText) === '') {
+                continue;
+            }
             $question->answers()->create([
                 'answer_text' => $answerText,
-                'is_correct'  => in_array($idx, $correctAnswers),
-                'order'       => $idx,
+                'is_correct' => in_array($idx, $correctAnswers),
+                'order' => $idx,
             ]);
         }
 
@@ -151,6 +159,7 @@ class QuizController extends Controller
         $quiz->questions()->orderBy('order')->get()->each(function ($q, $i) {
             $q->update(['order' => $i]);
         });
+
         return back()->with('success', 'Question removed.');
     }
 
@@ -161,7 +170,7 @@ class QuizController extends Controller
 
         $direction = $request->input('direction'); // 'up' or 'down'
         $questions = $quiz->questions()->orderBy('order')->get();
-        $idx       = $questions->search(fn($q) => $q->id === $question->id);
+        $idx = $questions->search(fn ($q) => $q->id === $question->id);
 
         $swapIdx = $direction === 'up' ? $idx - 1 : $idx + 1;
 
@@ -182,32 +191,34 @@ class QuizController extends Controller
         abort_if($question->quiz_id !== $quiz->id, 404);
 
         $request->validate([
-            'question_text'    => ['required','string','max:500'],
-            'time_limit'       => ['required','integer','min:5','max:120'],
-            'points'           => ['required','integer','min:0','max:2000'],
-            'answers'          => ['required','array','min:2','max:4'],
-            'answers.*'        => ['required','string','max:200'],
-            'correct_answers'  => ['required','array','min:1'],
-            'image_url'        => ['nullable','url:http,https','max:500'],
-            'video_url'        => ['nullable','url:http,https','max:500'],
-            'multiple_correct' => ['nullable','boolean'],
-            'request_token'    => ['nullable','string','max:100'],
+            'question_text' => ['required', 'string', 'max:500'],
+            'time_limit' => ['required', 'integer', 'min:5', 'max:120'],
+            'answer_delay' => ['required', 'integer', 'min:0', 'max:180'],
+            'points' => ['required', 'integer', 'min:0', 'max:2000'],
+            'answers' => ['required', 'array', 'min:2', 'max:4'],
+            'answers.*' => ['required', 'string', 'max:200'],
+            'correct_answers' => ['required', 'array', 'min:1'],
+            'image_url' => ['nullable', 'url:http,https', 'max:500'],
+            'video_url' => ['nullable', 'url:http,https', 'max:500'],
+            'multiple_correct' => ['nullable', 'boolean'],
+            'request_token' => ['nullable', 'string', 'max:100'],
         ]);
 
         // A double submit replays the same request_token; the first submit already
         // applied this exact edit, so skip re-running the delete-and-recreate below.
-        if ($this->isDuplicateSubmission('update-question-' . $question->id, $quiz, $request->input('request_token'))) {
+        if ($this->isDuplicateSubmission('update-question-'.$question->id, $quiz, $request->input('request_token'))) {
             return back()->with('success', 'Question updated!');
         }
 
         $multiple = $request->boolean('multiple_correct') || count($request->correct_answers) > 1;
 
         $question->update([
-            'question_text'    => $request->question_text,
-            'time_limit'       => $request->time_limit,
-            'points'           => $request->points,
-            'image_url'        => $request->image_url,
-            'video_url'        => $request->video_url,
+            'question_text' => $request->question_text,
+            'time_limit' => $request->time_limit,
+            'answer_delay' => $request->answer_delay,
+            'points' => $request->points,
+            'image_url' => $request->image_url,
+            'video_url' => $request->video_url,
             'multiple_correct' => $multiple,
         ]);
 
@@ -215,11 +226,13 @@ class QuizController extends Controller
         $question->answers()->delete();
         $correctAnswers = array_map('intval', $request->correct_answers);
         foreach ($request->answers as $idx => $answerText) {
-            if (trim($answerText) === '') continue;
+            if (trim($answerText) === '') {
+                continue;
+            }
             $question->answers()->create([
                 'answer_text' => $answerText,
-                'is_correct'  => in_array($idx, $correctAnswers),
-                'order'       => $idx,
+                'is_correct' => in_array($idx, $correctAnswers),
+                'order' => $idx,
             ]);
         }
 
@@ -241,6 +254,7 @@ class QuizController extends Controller
         foreach ($request->order as $idx => $questionId) {
             $quiz->questions()->where('id', $questionId)->update(['order' => $idx]);
         }
+
         return response()->json(['ok' => true]);
     }
 
@@ -248,12 +262,15 @@ class QuizController extends Controller
     {
         $this->authorize($quiz);
         $quiz->load('questions.answers');
+
         return view('quizzes.show', compact('quiz'));
     }
 
     private function authorize(Quiz $quiz)
     {
-        if ($quiz->user_id !== auth()->id()) abort(403);
+        if ($quiz->user_id !== auth()->id()) {
+            abort(403);
+        }
     }
 
     /**
@@ -263,10 +280,15 @@ class QuizController extends Controller
      */
     private function isDuplicateSubmission(string $action, Quiz $quiz, ?string $token): bool
     {
-        if (!$token) return false;
+        if (! $token) {
+            return false;
+        }
         $key = "quiz-request:{$quiz->id}:{$action}:{$token}";
-        if (Cache::has($key)) return true;
+        if (Cache::has($key)) {
+            return true;
+        }
         Cache::put($key, true, now()->addMinutes(10));
+
         return false;
     }
 }

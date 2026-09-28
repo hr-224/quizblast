@@ -25,12 +25,14 @@ class QuizEditorRedesignTest extends TestCase
             }
             $questions->push($q);
         }
+
         return compact('host', 'quiz', 'questions');
     }
 
     private function html(int $questionCount = 2): string
     {
         ['host' => $host, 'quiz' => $quiz] = $this->makeQuiz($questionCount);
+
         return $this->actingAs($host)->get(route('quizzes.edit', $quiz))->assertOk()->getContent();
     }
 
@@ -54,8 +56,8 @@ class QuizEditorRedesignTest extends TestCase
 
         $this->assertSame(2, substr_count($html, 'q-card mb-2"'));   // one per question card; substring avoids depending on class attribute order
         foreach ($qs as $q) {
-            $this->assertStringContainsString('data-id="' . $q->id . '"', $html);
-            $this->assertStringContainsString('action="' . route('quizzes.updateQuestion', [$quiz, $q]) . '"', $html);
+            $this->assertStringContainsString('data-id="'.$q->id.'"', $html);
+            $this->assertStringContainsString('action="'.route('quizzes.updateQuestion', [$quiz, $q]).'"', $html);
         }
         $this->assertStringContainsString('<x-answer-shape', $this->src());
         $this->assertSame(8, substr_count($html, 'class="ans-chip'));   // 2 questions × 4 answers, collapsed summary
@@ -106,7 +108,7 @@ class QuizEditorRedesignTest extends TestCase
         // Every id read by a literal getElementById call must exist as id="..." somewhere in the file
         // (ids created per-card in the @foreach loop use string concatenation and are exempt from this check).
         foreach (array_unique($m[1]) as $id) {
-            $this->assertStringContainsString('id="' . $id . '"', $src, "script uses #{$id} but the markup has no such id");
+            $this->assertStringContainsString('id="'.$id.'"', $src, "script uses #{$id} but the markup has no such id");
         }
     }
 
@@ -139,7 +141,7 @@ class QuizEditorRedesignTest extends TestCase
     {
         $html = $this->html(1);
         foreach (range(0, 3) as $i) {
-            $this->assertStringContainsString('class="ans-shape ans-fg-' . $i . '"', $html);
+            $this->assertStringContainsString('class="ans-shape ans-fg-'.$i.'"', $html);
         }
         $css = file_get_contents(public_path('css/app.css'));
         $this->assertStringContainsString('.ans-fg-0{color:var(--ans-coral)}', $css);
@@ -174,6 +176,74 @@ class QuizEditorRedesignTest extends TestCase
         $src = $this->src();
         $this->assertStringContainsString("window.alert('Could not save the new order", $src);
         $this->assertStringContainsString('res.ok', $src);
+    }
+
+    private function questionPayload(array $overrides = []): array
+    {
+        return array_merge([
+            'question_text' => 'What is 2+2?',
+            'time_limit' => 20,
+            'answer_delay' => 5,
+            'points' => 1000,
+            'answers' => ['3', '4', '5', '6'],
+            'correct_answers' => [1],
+        ], $overrides);
+    }
+
+    public function test_add_question_stores_the_given_answer_delay(): void
+    {
+        ['host' => $host, 'quiz' => $quiz] = $this->makeQuiz(0);
+        $this->actingAs($host)->post(route('quizzes.addQuestion', $quiz), $this->questionPayload(['answer_delay' => 15]))->assertRedirect();
+
+        $this->assertSame(15, $quiz->questions()->first()->answer_delay);
+    }
+
+    public function test_update_question_stores_the_given_answer_delay(): void
+    {
+        ['host' => $host, 'quiz' => $quiz, 'questions' => $qs] = $this->makeQuiz(1);
+        $question = $qs->first();
+
+        $this->actingAs($host)->put(route('quizzes.updateQuestion', [$quiz, $question]), $this->questionPayload(['answer_delay' => 15]))->assertRedirect();
+
+        $this->assertSame(15, $question->fresh()->answer_delay);
+    }
+
+    public function test_add_question_rejects_a_negative_answer_delay(): void
+    {
+        ['host' => $host, 'quiz' => $quiz] = $this->makeQuiz(0);
+        $this->actingAs($host)->post(route('quizzes.addQuestion', $quiz), $this->questionPayload(['answer_delay' => -1]))
+            ->assertSessionHasErrors('answer_delay');
+        $this->assertSame(0, $quiz->questions()->count());
+    }
+
+    public function test_add_question_rejects_an_answer_delay_over_180(): void
+    {
+        ['host' => $host, 'quiz' => $quiz] = $this->makeQuiz(0);
+        $this->actingAs($host)->post(route('quizzes.addQuestion', $quiz), $this->questionPayload(['answer_delay' => 181]))
+            ->assertSessionHasErrors('answer_delay');
+        $this->assertSame(0, $quiz->questions()->count());
+    }
+
+    public function test_update_question_rejects_an_out_of_range_answer_delay(): void
+    {
+        ['host' => $host, 'quiz' => $quiz, 'questions' => $qs] = $this->makeQuiz(1);
+        $question = $qs->first();
+        $originalDelay = $question->fresh()->answer_delay;
+
+        $this->actingAs($host)->put(route('quizzes.updateQuestion', [$quiz, $question]), $this->questionPayload(['answer_delay' => 200]))
+            ->assertSessionHasErrors('answer_delay');
+        $this->assertSame($originalDelay, $question->fresh()->answer_delay);
+    }
+
+    public function test_edit_page_renders_answer_delay_field_for_both_forms_with_current_value(): void
+    {
+        ['host' => $host, 'quiz' => $quiz, 'questions' => $qs] = $this->makeQuiz(1);
+        $qs->first()->update(['answer_delay' => 12]);
+
+        $html = $this->actingAs($host)->get(route('quizzes.edit', $quiz))->getContent();
+
+        $this->assertSame(2, substr_count($html, 'name="answer_delay"'));
+        $this->assertStringContainsString('value="12"', $html);
     }
 
     public function test_settings_panel_and_header_actions_still_present(): void

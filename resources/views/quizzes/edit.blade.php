@@ -113,7 +113,7 @@
                       <input type="url" name="video_url" class="form-control" value="{{ $question->video_url }}" placeholder="https://youtube.com/..." />
                     </div>
                   </div>
-                  <div class="grid-2">
+                  <div class="grid-3">
                     <div class="form-group">
                       <label class="form-label">Time limit</label>
                       <select name="time_limit" class="form-control">
@@ -129,6 +129,11 @@
                           <option value="{{ $p }}" {{ $question->points == $p ? 'selected' : '' }}>{{ $p }}</option>
                         @endforeach
                       </select>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Delay before answers</label>
+                      <input type="number" name="answer_delay" class="form-control" min="0" max="180" value="{{ $question->answer_delay }}" />
+                      <span class="field-hint">Give players time to watch a video or read before answers appear</span>
                     </div>
                   </div>
                   <div class="form-group">
@@ -183,7 +188,7 @@
               <input type="url" name="video_url" class="form-control" value="{{ old('video_url') }}" placeholder="https://youtube.com/..." />
             </div>
           </div>
-          <div class="grid-2">
+          <div class="grid-3">
             <div class="form-group">
               <label class="form-label">Time limit</label>
               <select name="time_limit" class="form-control">
@@ -199,6 +204,11 @@
                   <option value="{{ $p }}" {{ old('points', 1000) == $p ? 'selected' : '' }}>{{ $p }}</option>
                 @endforeach
               </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Delay before answers</label>
+              <input type="number" name="answer_delay" class="form-control" min="0" max="180" value="{{ old('answer_delay', 5) }}" />
+              <span class="field-hint">Give players time to watch a video or read before answers appear</span>
             </div>
           </div>
           <div class="form-group">

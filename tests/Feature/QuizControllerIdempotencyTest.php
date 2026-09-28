@@ -16,16 +16,18 @@ class QuizControllerIdempotencyTest extends TestCase
     {
         $host = User::create(['name' => 'Host', 'email' => 'idem@test.com', 'password' => 'secret-pass']);
         $quiz = Quiz::create(['user_id' => $host->id, 'title' => 'Idempotency Quiz']);
+
         return [$host, $quiz];
     }
 
     private function questionPayload(array $overrides = []): array
     {
         return array_merge([
-            'question_text'   => 'What is 2+2?',
-            'time_limit'      => 20,
-            'points'          => 1000,
-            'answers'         => ['3', '4', '5', '6'],
+            'question_text' => 'What is 2+2?',
+            'time_limit' => 20,
+            'answer_delay' => 5,
+            'points' => 1000,
+            'answers' => ['3', '4', '5', '6'],
             'correct_answers' => [1],
         ], $overrides);
     }
