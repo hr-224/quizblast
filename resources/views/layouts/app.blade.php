@@ -6,9 +6,14 @@
 </head>
 <body>
 
+@if($fxBg ?? false)
+<div class="join-static" aria-hidden="true"></div>
+<canvas id="join-bg" class="join-bg fx-party" aria-hidden="true"></canvas>
+@endif
+
 <nav class="navbar">
   <div class="navbar-inner">
-    <a href="{{ route('play.join') }}" class="navbar-brand">@include('partials.brand-mark')<span class="brand-word">Quiz<span>Blast</span></span></a>
+    <a href="{{ route('landing') }}" class="navbar-brand">@include('partials.brand-mark')<span class="brand-word">Quiz<span>Blast</span></span></a>
     <div class="navbar-nav" id="nav-links">
       <a href="{{ route('library') }}" class="nav-link">Library</a>
       @auth
@@ -60,7 +65,7 @@
   </div>
 </nav>
 
-<main>
+<main @class(['has-fx-bg' => $fxBg ?? false])>
   @if(session('success'))
     <div class="container mt-2"><div class="alert alert-success">{{ session('success') }}</div></div>
   @endif
@@ -73,6 +78,10 @@
 
 <script src="/js/qb-confirm.js?v={{ filemtime(public_path('js/qb-confirm.js')) }}"></script>
 <script src="/js/qb-ui.js?v={{ filemtime(public_path('js/qb-ui.js')) }}"></script>
+@if($fxBg ?? false)
+<script src="/js/shapes.js?v={{ filemtime(public_path('js/shapes.js')) }}"></script>
+<script src="/js/join-bg.js?v={{ filemtime(public_path('js/join-bg.js')) }}"></script>
+@endif
 @stack('scripts')
 <script>
 document.querySelectorAll('.alert').forEach(function(el) {

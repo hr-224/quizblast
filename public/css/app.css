@@ -15,6 +15,7 @@
 @font-face{font-family:'Source Sans 3';font-style:normal;font-weight:600 900;font-display:swap;src:url('/fonts/atkinson-700-latin.woff2') format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 /* ═══ 2. DESIGN TOKENS ═══ */
 :root {
+  color-scheme: dark;
   /* surfaces */
   --ink:#0b0a1a;
   --ink-2:#100e24;
@@ -140,7 +141,8 @@ a:hover{opacity:.85}
 .form-control{width:100%;background:var(--surface-2);border:2px solid var(--line);color:var(--text);padding:.75rem .95rem;border-radius:var(--radius-sm);font-size:1rem;font-family:var(--font-body);transition:var(--transition);outline:none}
 .form-control:focus{border-color:var(--violet);background:rgba(124,92,255,.10);box-shadow:0 0 0 3px rgba(124,92,255,.25)}
 .form-control::placeholder{color:var(--text-muted);opacity:.7}
-select.form-control{cursor:pointer}
+select.form-control{cursor:pointer;color-scheme:dark}
+select.form-control option{background:var(--surface-2);color:var(--text)}
 textarea.form-control{resize:vertical;min-height:80px}
 .form-check{display:flex;align-items:center;gap:.5rem;cursor:pointer}
 .form-check input[type="checkbox"]{width:18px;height:18px;accent-color:var(--violet);cursor:pointer}
@@ -309,9 +311,11 @@ html[data-fx="party"] .card{box-shadow:0 0 0 1px rgba(124,92,255,.08),0 12px 40p
 }
 
 /* ═══ 6. PLAYER SCREENS ═══ */
-/* join */
+/* join — .join-static/.join-bg are also used as the shared site-wide "fx" background
+   (layouts.app renders them when a view opts in with @extends('layouts.app', ['fxBg' => true])) */
 .join-static{position:fixed;top:0;right:0;bottom:0;left:0;z-index:0;background:radial-gradient(60rem 40rem at 15% 10%,rgba(124,92,255,.28),transparent 60%),radial-gradient(50rem 36rem at 90% 90%,rgba(34,211,238,.16),transparent 60%),var(--ink)}
 .join-bg{position:fixed;top:0;right:0;bottom:0;left:0;width:100%;height:100%;z-index:1;display:block}
+main.has-fx-bg{position:relative;z-index:5}
 .join-page{position:relative;z-index:5;min-height:calc(100vh - 61px);display:flex;align-items:center;justify-content:center;padding:2rem 1rem}
 .join-card{width:100%;max-width:420px;background:rgba(21,19,43,.88);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--line-strong);border-radius:var(--radius-lg);padding:2rem 1.75rem;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .join-mark .brand-bolt{width:3rem;height:3rem}
@@ -744,3 +748,53 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .spec-answers-wait{text-align:center;font-weight:700;color:var(--text-muted);padding:1rem 0}
 
 /* === END AUTH & SPECTATOR === */
+
+/* ═══ 10. LANDING ═══ */
+.landing-hero{position:relative;overflow:hidden;padding:4.5rem 0 3.5rem}
+.landing-hero-glow{position:absolute;top:0;right:0;bottom:0;left:0;z-index:0;background:radial-gradient(55rem 38rem at 15% 10%,rgba(124,92,255,.28),transparent 60%),radial-gradient(46rem 34rem at 90% 30%,rgba(34,211,238,.14),transparent 60%);pointer-events:none}
+.landing-hero-inner{position:relative;z-index:1;display:grid;grid-template-columns:1.15fr .85fr;align-items:center;gap:2.5rem}
+.landing-hero-title{font-size:clamp(2.3rem,4.5vw,3.4rem);margin-bottom:1rem}
+.landing-hero-title span{color:var(--violet-text)}
+.landing-hero-sub{color:var(--text-muted);font-size:1.1rem;max-width:34rem;margin-bottom:1.75rem}
+.landing-pin-form{display:flex;gap:.6rem;max-width:26rem;margin-bottom:1.1rem}
+.landing-pin-input{font-family:var(--font-display);font-weight:700;letter-spacing:.08em;text-align:center}
+.landing-hero-actions{display:flex;align-items:center;flex-wrap:wrap;gap:1rem}
+.landing-inline-link{font-weight:700;color:var(--text-muted)}
+.landing-inline-link:hover{color:var(--text)}
+.landing-hero-visual{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:1rem}
+.landing-tile{aspect-ratio:1;border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;color:var(--ink);animation:landing-float 3.6s ease-in-out infinite}
+.landing-tile .ans-shape{width:2.4rem;height:2.4rem}
+.landing-tile-0{background:var(--ans-coral);animation-delay:0s}
+.landing-tile-1{background:var(--ans-cyan);animation-delay:.4s}
+.landing-tile-2{background:var(--ans-lime);animation-delay:.8s}
+.landing-tile-3{background:var(--ans-amber);animation-delay:1.2s}
+@keyframes landing-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-.5rem)}}
+@media (max-width:860px){
+  .landing-hero-inner{grid-template-columns:1fr}
+  .landing-hero-visual{display:none}
+  .landing-pin-form{max-width:none}
+}
+@media (max-width:480px){.landing-pin-form{flex-direction:column}}
+
+.landing-section{padding:3.5rem 0}
+.landing-section-alt{background:var(--ink-2)}
+.landing-section-title{font-size:clamp(1.6rem,3vw,2.1rem);margin-bottom:.4rem}
+.landing-section-sub{color:var(--text-muted);margin-bottom:2.25rem}
+.landing-howto-cols{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin-top:2rem}
+.landing-howto-kicker{font-family:var(--font-display);font-weight:800;color:var(--violet-text);text-transform:uppercase;font-size:.85rem;letter-spacing:.08em;margin-bottom:1rem}
+.landing-steps{list-style:none;display:flex;flex-direction:column;gap:1.1rem}
+.landing-step{display:flex;align-items:flex-start;gap:.9rem}
+.landing-step-num{flex-shrink:0;width:2rem;height:2rem;border-radius:50%;background:var(--surface-2);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;color:var(--violet-text)}
+@media (max-width:700px){.landing-howto-cols{grid-template-columns:1fr;gap:2rem}}
+
+.landing-feature-grid{margin-top:1rem}
+.landing-feature{display:flex;flex-direction:column;gap:.6rem}
+.landing-feature-icon{width:2.4rem;height:2.4rem}
+.landing-feature-icon .ans-shape{width:100%;height:100%}
+.landing-feature-title{font-family:var(--font-display);font-weight:800;font-size:1.05rem}
+
+.landing-cta{padding:4rem 0}
+.landing-cta-inner{text-align:center;display:flex;flex-direction:column;align-items:center;gap:1rem}
+.landing-cta-title{font-size:clamp(1.7rem,3.5vw,2.3rem)}
+.landing-cta-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:1rem;margin-top:.5rem}
+/* === END LANDING === */

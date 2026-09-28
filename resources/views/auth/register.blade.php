@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app', ['fxBg' => true])
 @section('title', 'Sign Up')
 
 @section('content')

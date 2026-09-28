@@ -28,9 +28,8 @@ class AppShellTest extends TestCase
         $html = $this->get(route('play.join'))->assertStatus(200)->getContent();
         $this->assertStringContainsString("setAttribute('data-fx'", $html);
         $this->assertStringContainsString("qb-fx", $html);
-        $this->assertStringContainsString('prefers-reduced-motion', $html);
-        // Reduced motion selects calm, otherwise party.
-        $this->assertMatchesRegularExpression("/matches\\)\\?'calm':'party'/", $html);
+        // Party is the default unless the visitor has an explicit stored preference.
+        $this->assertMatchesRegularExpression("/f!=='calm'&&f!=='party'\\)\\{f='party';\\}/", $html);
         // The bootstrap must run before the stylesheet loads so there is no flash of the wrong mode.
         $scriptPos = strpos($html, "setAttribute('data-fx'");
         $cssPos = strpos($html, '/css/app.css');
@@ -79,8 +78,8 @@ class AppShellTest extends TestCase
     public function test_fx_bootstrap_survives_blocked_storage(): void
     {
         $html = $this->get(route('play.join'))->getContent();
-        // Storage is read in its own try/catch so a throw still reaches the reduced-motion default below it.
-        $this->assertMatchesRegularExpression('/<script>\(function\(\)\{var f=null;try\{f=localStorage\.getItem\(\'qb-fx\'\);\}catch\(e\)\{\}try\{.*matchMedia.*\}catch\(e\)\{\}\}\)\(\);<\/script>/s', $html);
+        // Storage is read in its own try/catch so a throw still reaches the party default below it.
+        $this->assertMatchesRegularExpression('/<script>\(function\(\)\{var f=null;try\{f=localStorage\.getItem\(\'qb-fx\'\);\}catch\(e\)\{\}try\{.*f=\'party\';.*\}catch\(e\)\{\}\}\)\(\);<\/script>/s', $html);
         $this->assertStringNotContainsString("catch(e){document.documentElement.setAttribute('data-fx','calm')", $html);
         $ui = file_get_contents(public_path('js/qb-ui.js'));
         $this->assertStringContainsString('try { return window.localStorage.getItem', $ui);
