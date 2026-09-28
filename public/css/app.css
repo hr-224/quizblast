@@ -714,7 +714,7 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 /* === END EDITOR & LIBRARY === */
 
 /* ═══ 9. AUTH & SPECTATOR ═══ */
-.auth-page{flex:1;display:flex;align-items:center;justify-content:center;padding:2.5rem 1.25rem;position:relative;overflow:hidden}
+.auth-page{flex:1;min-height:calc(100vh - 61px);display:flex;align-items:center;justify-content:center;padding:2.5rem 1.25rem;position:relative;overflow:hidden}
 .auth-page::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;z-index:0;background:radial-gradient(60rem 40rem at 20% 20%,rgba(124,92,255,.22),transparent 60%),radial-gradient(50rem 36rem at 85% 80%,rgba(34,211,238,.12),transparent 60%);pointer-events:none}
 .auth-card{position:relative;z-index:1;width:100%;max-width:440px;background:rgba(21,19,43,.88);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--line-strong);border-radius:var(--radius-lg);padding:2.2rem 2rem;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .auth-title{font-size:1.9rem;text-align:center;margin-bottom:.3rem}
@@ -737,6 +737,7 @@ html[data-fx="party"] .timer-ring.is-urgent .timer-ring-num{animation:pulse-num 
 .spec-container{flex:1;display:flex;flex-direction:column;align-items:center;padding:1.5rem;width:100%;max-width:860px;margin:0 auto;gap:1rem}
 .spec-question,.spec-reviewing{width:100%}
 .spec-question .q-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.spec-question .hq-card{margin-bottom:1rem}
 .spec-answers{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
 .spec-answers .ans-tile{flex-direction:row;justify-content:flex-start;gap:.6rem;min-height:4.5rem;padding:1rem 1.25rem;text-align:left}
 .spec-final-card{max-width:500px;margin:1rem auto 0}
