@@ -28,11 +28,11 @@ app/
 │   └── PowerUpUsed.php
 ├── Http/
 │   ├── Controllers/
-│   │   ├── Auth/           # Host login/register, player login/register
+│   │   ├── Auth/           # Login/register (one account type)
 │   │   ├── DashboardController.php
 │   │   ├── GameController.php    # Host game flow + polling API
-│   │   ├── LibraryController.php
-│   │   ├── PlayerController.php  # Player join, answer, heartbeat
+│   │   ├── LibraryController.php # Public library: search, sort, browse mode
+│   │   ├── PlayerController.php  # Player join/rejoin, answer, heartbeat
 │   │   ├── QuizController.php    # Quiz CRUD
 │   │   └── SpectatorController.php
 │   └── Middleware/
@@ -47,11 +47,12 @@ app/
     ├── GameAnswer.php
     └── GameReaction.php
 
-database/migrations/        # 13 migration files (schema history)
+database/migrations/        # 16 migration files (schema history)
 resources/views/
 ├── layouts/                # app.blade.php, game.blade.php
 ├── auth/                   # login, register, player-stats
 ├── dashboard/
+├── components/             # answer-shape, answer-chip, quiz-card, banner-fields
 ├── quizzes/                # create, edit
 ├── host/                   # lobby, question, final
 ├── play/                   # join, lobby, game, final
@@ -63,7 +64,8 @@ public/
 ├── js/
 │   ├── confetti.js         # Canvas confetti
 │   └── sounds.js           # Web Audio API sound effects
-└── audio/                  # Sound effect files
+├── audio/                  # Sound effect files
+└── uploads/banners/        # Uploaded quiz banners (git-ignored, created on first upload)
 
 routes/
 ├── web.php                 # All HTTP routes
@@ -82,7 +84,9 @@ tests/Feature/              # PHPUnit feature tests
 users               — Accounts (name, email, password, total_score, games_played, wins).
                       One account type: any User can host quizzes and/or accrue player
                       stats — there is no separate player-only account.
-quizzes             — Quiz metadata (title, description, category, is_public)
+quizzes             — Quiz metadata (title, description, category, tags, is_public, banner).
+                      banner is either an http(s) image URL or a path under public/
+                      (uploads/banners/<random>.<ext>)
 questions           — Questions per quiz (text, time_limit, points, order)
 answers             — Answer options per question (text, is_correct, order)
 ```
@@ -96,6 +100,9 @@ game_players        — Players in a game (nickname, score, streak, power_ups JS
                       in (any User, including a host playing their own game), null
                       for anonymous PIN+nickname joins. stats_credited_at guards
                       against crediting a User's lifetime stats more than once.
+                      rejoin_token (hidden from JSON) lets a disconnected player prove they
+                      own their nickname; rejoin_released_until is the host's 5-minute,
+                      single-use "let back in" window.
 game_answers        — Each player's answer per question (response_time_ms, points_earned)
 game_reactions      — Emoji reactions during a game
 ```
@@ -168,8 +175,29 @@ Players poll every **1.5 seconds**. Hosts poll every **1.5 seconds** for the ans
 ### Presence / Heartbeat
 
 - Players call `POST /play/{pin}/heartbeat` every 5 seconds
-- Players with `last_seen_at` older than **60 seconds** are automatically removed
-- This fires a `PlayerLeft` event, updating the lobby count for remaining players
+- **In the lobby only**, players with `last_seen_at` older than **20 seconds** are removed (no-shows), firing a `PlayerLeft` event that updates the lobby count
+- Once a game has started nobody is auto-removed: a phone that goes idle keeps its row, score and streak, so the player can come back
+
+### Rejoining a game
+
+A player's identity in a game is the session key `player_id_{pin}`. When that is lost, `PlayerController::join` lets them back into a game in `question` or `reviewing` status by nickname, but only if one of these holds:
+
+1. The submitted `rejoin_token` matches the row's (the token is kept in `localStorage` as `qb_rejoin_{pin}` and copied into a hidden field on the join form)
+2. They are logged in as the `user_id` linked to that row
+3. The host released that player (`POST /host/{game}/release/{player}`, valid 5 minutes, single use)
+4. Their session already points at that row
+
+Otherwise the nickname is refused ("already in use"). A successful rejoin rotates `rejoin_token`, refreshes `last_seen_at`/`session_id`, links `user_id` if the rejoiner is logged in, and flashes how many earlier questions were missed.
+
+Each session also stores the player's current token as `player_token_{pin}`. All player endpoints read the player via `PlayerController::sessionPlayerId()`, which treats a session whose token no longer matches the row as displaced (signed out) — so a rejoin on a new device ends the old device's session. Sessions without a token key (created before this existed) still work.
+
+### Public library
+
+`LibraryController@index` builds the `/library` page. `sort` is whitelisted (`new`, `popular` = most finished games, `questions`); anything else falls back to `new`. With no search, category, sort or later page ("browse mode") it also loads a Popular strip (top 3 by finished games, else newest) and up to 3 rows for categories that have at least two quizzes. `plays_count` is a `withCount` over finished `games`, so no schema is involved. Cards are the `<x-quiz-card>` component.
+
+### Quiz banners
+
+Set from the quiz create/edit forms (`<x-banner-fields>`), handled by `QuizController::resolveBanner`: an uploaded file (JPG/PNG/WebP, max 2 MB, MIME-sniffed from content, saved as a random name in `public/uploads/banners/`) wins over a pasted URL; "remove" clears it; otherwise the banner is unchanged. Replacing, removing or deleting a quiz deletes the old file via `Quiz::deleteBannerFile()`, which keeps a file while any other quiz (for example a duplicate) still references it. Banners render on library cards (over the generated shape cover, which stays as a fallback) and on the library preview page.
 
 ---
 

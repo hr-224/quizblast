@@ -114,4 +114,6 @@ REVERB_SCHEME=https
 REVERB_SERVER_PORT=7001
 ```
 
+Quiz banner uploads need PHP's `upload_max_filesize` and `post_max_size` to be at least 3M (PHP's default `upload_max_filesize` is exactly 2M), nginx's `client_max_body_size` to be at least 3m, and `public/uploads/` to be writable by the web server user.
+
 See [self-hosting.md](self-hosting.md) for the full production deployment guide.

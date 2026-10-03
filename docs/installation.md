@@ -25,6 +25,12 @@ Fix directory permissions:
 chmod -R 775 storage bootstrap/cache
 ```
 
+Quiz banner uploads are saved to `public/uploads/banners/`, which is created on the first upload — the web server user must be able to write to `public/`, or create it up front:
+
+```bash
+mkdir -p public/uploads/banners && chmod -R 775 public/uploads
+```
+
 ---
 
 ## Step 2 — Configure your web server
@@ -40,6 +46,8 @@ server {
 
     root /var/www/quizblast/public;
     index index.php;
+
+    client_max_body_size 3m;   # quiz banner uploads are up to 2 MB
 
     location / {
         try_files $uri $uri/ /index.php?$query_string;

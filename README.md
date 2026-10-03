@@ -26,7 +26,9 @@ Hosts create quizzes and launch live games with a 6-digit PIN. Players join inst
 | 😊 | **Reactions** | Players send emoji reactions during gameplay |
 | 👥 | **Spectator Mode** | Watch a game live without playing |
 | 🔒 | **Host Accounts** | Register, log in, manage your quiz library |
-| 📚 | **Public Library** | Browse and play public quizzes from other hosts |
+| 📚 | **Public Library** | Browse, search, sort and host public quizzes, with category chips and popular picks |
+| 🖼 | **Quiz Banners** | Add a banner image (upload or link) that shows on library cards and the quiz preview |
+| 🔁 | **Rejoin** | Players who lose their connection can rejoin a live game with their score intact |
 | 🌐 | **Web Installer** | Browser-based setup wizard — no command line needed |
 
 ---

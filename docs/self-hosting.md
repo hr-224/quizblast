@@ -61,6 +61,8 @@ sudo chown -R www-data:www-data /var/www/quizblast
 sudo find /var/www/quizblast -type f -exec chmod 644 {} \;
 sudo find /var/www/quizblast -type d -exec chmod 755 {} \;
 sudo chmod -R 775 /var/www/quizblast/storage /var/www/quizblast/bootstrap/cache
+sudo mkdir -p /var/www/quizblast/public/uploads/banners
+sudo chown -R www-data:www-data /var/www/quizblast/public/uploads   # quiz banner uploads
 sudo chmod +x /var/www/quizblast/artisan
 ```
 
@@ -88,6 +90,8 @@ server {
 
     root  /var/www/quizblast/public;
     index index.php;
+
+    client_max_body_size 3m;   # quiz banner uploads are up to 2 MB (nginx's default is 1 MB)
 
     location / {
         try_files $uri $uri/ /index.php?$query_string;
@@ -281,6 +285,8 @@ sudo systemctl reload nginx
 # Apache
 sudo systemctl reload apache2
 ```
+
+`public/uploads/` holds quiz banners uploaded by hosts. It is git-ignored, so `git pull` leaves it alone — but include it in your backups, and don't delete it when redeploying.
 
 ---
 

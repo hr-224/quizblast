@@ -27,3 +27,16 @@ storage/logs/*
 !storage/framework/sessions/.gitkeep
 !storage/framework/views/.gitkeep
 !storage/logs/.gitkeep
+
+# AI assistant files and planning artifacts
+/CLAUDE.md
+/AGENTS.md
+/GEMINI.md
+/.claude
+*.save
+*.save.*
+
+# Local database and machine-specific deploy files
+/database/*.sqlite
+/deploy.sh
+/quizblast.ultmods.com.conf
